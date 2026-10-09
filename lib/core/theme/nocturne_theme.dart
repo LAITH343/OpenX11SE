@@ -140,9 +140,13 @@ class NocturneTheme extends ThemeExtension<NocturneTheme> {
 
   Gradient get groundGlow => RadialGradient(
     center: Alignment.topLeft,
-    radius: 1.6,
-    colors: [palette.accent.withValues(alpha: 0.06), palette.bg],
+    radius: 1,
+    colors: [
+      palette.accent.withValues(alpha: 0.06),
+      palette.accent.withValues(alpha: 0),
+    ],
     stops: const [0, 0.6],
+    transform: const _EllipseTransform(1200, 500),
   );
 
   static NocturneTheme of(BuildContext context) =>
@@ -156,6 +160,22 @@ class NocturneTheme extends ThemeExtension<NocturneTheme> {
   NocturneTheme lerp(covariant NocturneTheme? other, double t) {
     if (other == null) return this;
     return NocturneTheme(NocturnePalette.lerp(palette, other.palette, t));
+  }
+}
+
+class _EllipseTransform extends GradientTransform {
+  const _EllipseTransform(this.width, this.height);
+
+  final double width;
+  final double height;
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    final side = bounds.shortestSide;
+    if (side == 0) return Matrix4.identity();
+    return Matrix4.translationValues(bounds.left, bounds.top, 0)
+      ..scaleByDouble(width / side, height / side, 1, 1)
+      ..translateByDouble(-bounds.left, -bounds.top, 0, 1);
   }
 }
 

@@ -23,17 +23,24 @@ class AppHeader extends StatelessWidget {
     return SizedBox(
       height: 62,
       child: Stack(
+        fit: StackFit.expand,
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 14, right: 16),
             child: Row(
               children: [
-                const Flexible(flex: 4, child: _DeviceSummary()),
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Flexible(child: _DeviceSummary()),
+                      const SizedBox(width: 14),
+                      Container(width: 1, height: 28, color: n.divider),
+                      const SizedBox(width: 14),
+                      const ProfileButton(),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 14),
-                Container(width: 1, height: 28, color: n.divider),
-                const SizedBox(width: 14),
-                const ProfileButton(),
-                const Spacer(),
                 if (edit.autoApply) ...[
                   const Tooltip(
                     message: 'Changes are written automatically — see Settings',

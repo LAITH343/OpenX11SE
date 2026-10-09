@@ -96,6 +96,7 @@ const _hidpStatusSuccess = 0x00110000;
 const _waitObject0 = 0;
 const _waitTimeout = 0x102;
 const _errorIoPending = 997;
+const _statusPending = 0x103;
 const _errorOperationAborted = 995;
 const _errorFileNotFound = 2;
 const _errorInvalidHandle = 6;
@@ -439,7 +440,8 @@ class OverlappedReader {
     _overlapped
         .asTypedList(_overlappedEventOffset)
         .fillRange(0, _overlappedEventOffset, 0);
-    if (_api._readFile(_handle, _buffer, length, nullptr, _overlapped) == 0) {
+    if (_api._readFile(_handle, _buffer, length, nullptr, _overlapped) == 0 &&
+        _overlapped.cast<IntPtr>().value != _statusPending) {
       final error = _api._lastError();
       if (error != _errorIoPending) throw Win32HidException('ReadFile', error);
     }

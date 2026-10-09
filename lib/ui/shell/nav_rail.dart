@@ -83,6 +83,7 @@ class _NavItem extends StatelessWidget {
             borderRadius: n.radius.mdAll,
           ),
           child: Stack(
+            alignment: AlignmentDirectional.centerStart,
             children: [
               if (active)
                 Positioned(

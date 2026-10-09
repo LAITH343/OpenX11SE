@@ -182,6 +182,7 @@ class DeviceRepository {
     }
     switch (event) {
       case BatteryNotification():
+        if (_battery == event) break;
         _battery = event;
         if (state is DeviceReady) {
           _setState(
