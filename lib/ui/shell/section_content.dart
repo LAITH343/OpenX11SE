@@ -30,7 +30,9 @@ class SectionContent extends StatelessWidget {
             spacing: 18,
             children: [
               if (shell.status == ConnectionStatus.disconnected)
-                const _DisconnectedBanner(),
+                const _DisconnectedBanner()
+              else if (shell.deviceOff)
+                const _OffBanner(),
               if (error != null) _WriteErrorBanner(error: error),
               EntranceTransition(
                 child: SectionPlaceholder(section: shell.section),
@@ -59,20 +61,31 @@ class _DisconnectedBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shell = context.watch<ShellViewModel>();
-    final asleep = shell.deviceAsleep;
-    final reading = shell.isReconnecting && !asleep;
+    final off = shell.deviceOff;
+    final asleep = !off && shell.deviceAsleep;
+    final reading = shell.isReconnecting && !asleep && !off;
     return StatusBanner(
       kind: BannerKind.warning,
-      icon: asleep ? AppIcons.moon : AppIcons.plugs,
+      icon: off
+          ? AppIcons.power
+          : asleep
+          ? AppIcons.moon
+          : AppIcons.plugs,
       message: Text.rich(
         TextSpan(
           children: [
             TextSpan(
-              text: asleep ? 'Mouse is asleep.' : 'X11SE disconnected.',
+              text: off
+                  ? 'Mouse is off.'
+                  : asleep
+                  ? 'Mouse is asleep.'
+                  : 'X11SE disconnected.',
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
             TextSpan(
-              text: asleep
+              text: off
+                  ? " Your edits are kept — apply them when it's back on."
+                  : asleep
                   ? ' Move or click it to reconnect — your edits are kept.'
                   : ' Your edits are kept — apply them when the mouse is '
                         'back.',
@@ -92,6 +105,29 @@ class _DisconnectedBanner extends StatelessWidget {
   }
 }
 
+class _OffBanner extends StatelessWidget {
+  const _OffBanner();
+
+  @override
+  Widget build(BuildContext context) => const StatusBanner(
+    kind: BannerKind.warning,
+    icon: AppIcons.power,
+    message: Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: 'Mouse is off.',
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
+          TextSpan(
+            text: " Your edits are kept — apply them when it's back on.",
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _WriteErrorBanner extends StatelessWidget {
   const _WriteErrorBanner({required this.error});
 
@@ -102,7 +138,11 @@ class _WriteErrorBanner extends StatelessWidget {
     final edit = context.read<EditSessionViewModel>();
     return StatusBanner(
       kind: BannerKind.error,
-      icon: error.asleep ? AppIcons.moon : AppIcons.xCircle,
+      icon: error.off
+          ? AppIcons.power
+          : error.asleep
+          ? AppIcons.moon
+          : AppIcons.xCircle,
       message: Text(error.message),
       actions: [
         AppButton.ghost(

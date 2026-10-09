@@ -20,12 +20,19 @@ import '../../domain/settings_changes.dart';
 import '../widgets/toast_host.dart';
 
 class WriteError {
-  const WriteError({required this.label, required this.asleep});
+  const WriteError({
+    required this.label,
+    required this.asleep,
+    this.off = false,
+  });
 
   final String label;
   final bool asleep;
+  final bool off;
 
-  String get message => asleep
+  String get message => off
+      ? 'Mouse is off. Turn it on, then Retry.'
+      : asleep
       ? 'Mouse is asleep. Move it, then Retry.'
       : "Couldn't write $label to the mouse. Your changes are still staged.";
 }
@@ -58,6 +65,7 @@ class EditSessionViewModel extends ChangeNotifier {
   DeviceSettings? _staged;
   List<SettingsSection> _changes = const [];
   bool _online = false;
+  bool _mouseOff = false;
   ConnectionType? _connection;
   int? _profileId;
   bool _autoApply = false;
@@ -84,6 +92,8 @@ class EditSessionViewModel extends ChangeNotifier {
 
   bool get isOnline => _online;
 
+  bool get mouseOff => _mouseOff;
+
   bool get writing => _writing;
 
   double get writeProgress => _progress;
@@ -92,7 +102,7 @@ class EditSessionViewModel extends ChangeNotifier {
 
   WriteError? get writeError => _writeError;
 
-  bool get canApply => hasPending && !_writing && _online;
+  bool get canApply => hasPending && !_writing && _online && !_mouseOff;
 
   bool get canDiscard => hasPending && !_writing;
 
@@ -129,7 +139,11 @@ class EditSessionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> retry() {
+  Future<void> retry() async {
+    if (_mouseOff) {
+      _toasts.show('Turn the mouse on to apply', icon: AppIcons.power);
+      return;
+    }
     _writeError = null;
     notifyListeners();
     return apply();
@@ -174,21 +188,26 @@ class EditSessionViewModel extends ChangeNotifier {
       }
     } on DeviceWriteException catch (e) {
       if (_disposed) return;
+      final off = e.failure == DeviceWriteFailure.off || _mouseOff;
       final asleep =
-          e.failure == DeviceWriteFailure.asleep ||
-          (e.failure == DeviceWriteFailure.noAcknowledgement &&
-              _connection == ConnectionType.dongle);
+          !off &&
+          (e.failure == DeviceWriteFailure.asleep ||
+              (e.failure == DeviceWriteFailure.noAcknowledgement &&
+                  _connection == ConnectionType.dongle));
       _writeError = WriteError(
         label: _labelFor(e.reportId, changed),
         asleep: asleep,
+        off: off,
       );
-      _toasts.show(
-        asleep
-            ? 'No reply — mouse is asleep. Nothing was lost.'
-            : "Couldn't write ${_writeError!.label} — nothing was lost",
-        kind: asleep ? ToastKind.warning : ToastKind.error,
-        icon: asleep ? AppIconsFill.moon : AppIconsFill.xCircle,
-      );
+      if (!off) {
+        _toasts.show(
+          asleep
+              ? 'No reply — mouse is asleep. Nothing was lost.'
+              : "Couldn't write ${_writeError!.label} — nothing was lost",
+          kind: asleep ? ToastKind.warning : ToastKind.error,
+          icon: asleep ? AppIconsFill.moon : AppIconsFill.xCircle,
+        );
+      }
     } on Object {
       if (_disposed) return;
       _writeError = WriteError(label: _writeLabel, asleep: false);
@@ -252,12 +271,14 @@ class EditSessionViewModel extends ChangeNotifier {
   void _onState(DeviceState state) {
     final wasOnline = _online;
     _online = state is DeviceReady;
+    _mouseOff = state is DeviceOff || (state is DeviceReady && state.off);
     switch (state) {
       case DeviceReady(:final settings, :final info):
         _connection = info.connection;
         _rebase(settings, reconnected: !wasOnline);
       case DeviceConnecting(:final device) ||
           DeviceAsleep(:final device) ||
+          DeviceOff(:final device) ||
           DeviceFailed(:final device):
         _connection = device.connection;
       case DeviceAbsent():

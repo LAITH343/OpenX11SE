@@ -457,6 +457,65 @@ void main() {
       expect(repository.state, isA<DeviceAsleep>());
     });
 
+    test(
+      'no reports at all mark the mouse off until it reports again',
+      () async {
+        repository = DeviceRepository(
+          transport,
+          timing: (_) => instant,
+          silenceTimeout: const Duration(milliseconds: 20),
+          offTimeout: const Duration(milliseconds: 60),
+        );
+        repository.start();
+        transport.setPresent([dongleDevice]);
+        await waitReady(repository);
+        await repository.states.firstWhere((s) => s is DeviceReady && s.off);
+        await expectLater(
+          repository.apply(defaults.copyWith(polling: PollingRate.hz500)),
+          throwsA(
+            isA<DeviceWriteException>().having(
+              (e) => e.failure,
+              'failure',
+              DeviceWriteFailure.off,
+            ),
+          ),
+        );
+        final connection = transport.opened.single;
+        connection.notify('03 07 40 01 60');
+        await pumpEventQueue();
+        expect((repository.state as DeviceReady).off, isTrue);
+        connection.notify('03 07 40 01 60');
+        await pumpEventQueue();
+        expect((repository.state as DeviceReady).link, MouseLink.awake);
+      },
+    );
+
+    test(
+      'a silent mouse at startup is off, and read once it is back on',
+      () async {
+        final connection = FakeHidConnection(dongleDevice)..asleep = true;
+        transport.factories['dongle'] = () => connection;
+        repository = DeviceRepository(
+          transport,
+          timing: (_) => instant,
+          wakeRetryInterval: const Duration(hours: 1),
+          offTimeout: const Duration(milliseconds: 40),
+        );
+        repository.start();
+        transport.setPresent([dongleDevice]);
+        await repository.states.firstWhere((s) => s is DeviceOff);
+        final sent = connection.sent.length;
+        connection.asleep = false;
+        connection.notify('03 07 40 01 60');
+        await pumpEventQueue();
+        expect(repository.state, isA<DeviceOff>());
+        expect(connection.sent.length, sent);
+        connection.notify('03 07 40 01 60');
+        final ready = await waitReady(repository);
+        expect(ready.link, MouseLink.awake);
+      },
+    );
+
     test('the cable never reports a sleeping mouse', () async {
       repository = DeviceRepository(
         transport,

@@ -124,6 +124,7 @@ class _Main extends StatelessWidget {
     final body = switch (status) {
       ConnectionStatus.none => const NoDeviceState(),
       ConnectionStatus.asleep => const AsleepState(),
+      ConnectionStatus.off => const OffState(),
       ConnectionStatus.loading => const LoadingState(),
       ConnectionStatus.connected ||
       ConnectionStatus.disconnected => SectionContent(key: ValueKey(section)),

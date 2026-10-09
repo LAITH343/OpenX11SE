@@ -16,7 +16,7 @@ import '../widgets/toast_host.dart';
 import 'app_section.dart';
 import 'dialog_request.dart';
 
-enum ConnectionStatus { none, loading, asleep, connected, disconnected }
+enum ConnectionStatus { none, loading, asleep, off, connected, disconnected }
 
 class ShellViewModel extends ChangeNotifier {
   ShellViewModel({
@@ -54,14 +54,17 @@ class ShellViewModel extends ChangeNotifier {
   bool _profileMenuOpen = false;
   DialogRequest? _dialog;
   bool _sleepChecking = false;
+  bool _checkingOff = false;
   bool _disposed = false;
 
   ConnectionStatus get status => switch (_state) {
     DeviceReady() => ConnectionStatus.connected,
     _ when _hadSettings => ConnectionStatus.disconnected,
-    DeviceConnecting() when _sleepChecking => ConnectionStatus.asleep,
+    DeviceConnecting() when _sleepChecking =>
+      _checkingOff ? ConnectionStatus.off : ConnectionStatus.asleep,
     DeviceConnecting() => ConnectionStatus.loading,
     DeviceAsleep() => ConnectionStatus.asleep,
+    DeviceOff() => ConnectionStatus.off,
     DeviceAbsent() || DeviceFailed() => ConnectionStatus.none,
   };
 
@@ -77,6 +80,12 @@ class ShellViewModel extends ChangeNotifier {
   bool get deviceAsleep => switch (_state) {
     DeviceAsleep() => true,
     DeviceReady(:final asleep) => asleep,
+    _ => false,
+  };
+
+  bool get deviceOff => switch (_state) {
+    DeviceOff() => true,
+    DeviceReady(:final off) => off,
     _ => false,
   };
 
@@ -195,16 +204,21 @@ class ShellViewModel extends ChangeNotifier {
   Future<void> checkSleep() async {
     if (_sleepChecking) return;
     _sleepChecking = true;
+    _checkingOff = status == ConnectionStatus.off;
     notifyListeners();
     await _guard(_device.refresh);
     if (_disposed) return;
     _sleepChecking = false;
     notifyListeners();
-    if (_device.state is DeviceAsleep) {
-      _toasts.show(
-        'Still asleep — move or click the mouse',
-        icon: AppIconsFill.moon,
-      );
+    switch (_device.state) {
+      case DeviceAsleep():
+        _toasts.show(
+          'Still asleep — move or click the mouse',
+          icon: AppIconsFill.moon,
+        );
+      case DeviceOff():
+        _toasts.show('Still off — turn the mouse on', icon: AppIcons.power);
+      default:
     }
   }
 
@@ -245,6 +259,7 @@ class ShellViewModel extends ChangeNotifier {
         _polling = settings.polling;
       case DeviceConnecting(:final device) ||
           DeviceAsleep(:final device) ||
+          DeviceOff(:final device) ||
           DeviceFailed(:final device):
         _connection = device.connection;
       case DeviceAbsent():
@@ -262,14 +277,8 @@ class ShellViewModel extends ChangeNotifier {
 
   void _announceReady(DeviceState previous, DeviceReady ready) {
     final info = ready.info;
-    if (previous is DeviceReady && previous.asleep != ready.asleep) {
-      _toasts.show(
-        ready.asleep
-            ? 'X11SE went to sleep — move it to wake'
-            : 'X11SE is awake',
-        kind: ready.asleep ? ToastKind.info : ToastKind.success,
-        icon: ready.asleep ? AppIconsFill.moon : AppIconsFill.sun,
-      );
+    if (previous is DeviceReady && previous.link != ready.link) {
+      _announceLink(previous.link, ready.link);
     }
     if (previous is! DeviceReady) {
       if (!_hadSettings) {
@@ -304,6 +313,29 @@ class ShellViewModel extends ChangeNotifier {
         'X11SE fully charged',
         kind: ToastKind.success,
         icon: AppIconsFill.batteryFull,
+      );
+    }
+  }
+
+  void _announceLink(MouseLink from, MouseLink to) {
+    if (to == MouseLink.off) {
+      _toasts.show('X11SE turned off — edits kept', icon: AppIcons.power);
+    } else if (from == MouseLink.off) {
+      _toasts.show(
+        'X11SE is back on',
+        kind: ToastKind.success,
+        icon: AppIconsFill.plugsConnected,
+      );
+    } else if (to == MouseLink.asleep) {
+      _toasts.show(
+        'X11SE went to sleep — move it to wake',
+        icon: AppIconsFill.moon,
+      );
+    } else {
+      _toasts.show(
+        'X11SE is awake',
+        kind: ToastKind.success,
+        icon: AppIconsFill.sun,
       );
     }
   }

@@ -88,7 +88,9 @@ class AppHeader extends StatelessWidget {
                   label: edit.writing ? 'Writing…' : 'Apply',
                   minWidth: 108,
                   icon: edit.writing ? null : AppIcons.uploadSimple,
-                  tooltip: !online
+                  tooltip: edit.mouseOff
+                      ? 'Turn the mouse on to apply'
+                      : !online
                       ? 'Reconnect the mouse to apply'
                       : count > 0
                       ? 'Write changes to the mouse (Ctrl+S)'
@@ -175,6 +177,8 @@ class DeviceStatus {
     required this.color,
     required this.tip,
     this.spin = false,
+    this.dot,
+    this.tint,
   });
 
   final String label;
@@ -182,13 +186,26 @@ class DeviceStatus {
   final Color color;
   final String tip;
   final bool spin;
+  final Color? dot;
+  final Color? tint;
 
   static DeviceStatus of(
     BuildContext context,
     ShellViewModel shell, {
     required bool asleep,
+    required bool off,
   }) {
     final p = context.nocturne.palette;
+    if (off) {
+      return DeviceStatus(
+        label: '2.4 GHz · Off',
+        icon: AppIcons.power,
+        color: p.n(400),
+        dot: p.n(500),
+        tint: p.n(500).withValues(alpha: 0.14),
+        tip: 'Dongle connected · the mouse is switched off or out of range',
+      );
+    }
     if (asleep) {
       return DeviceStatus(
         label: '2.4 GHz · Asleep',
@@ -220,7 +237,9 @@ class DeviceStatus {
         color: p.danger,
         tip: 'Connection lost — edits are kept',
       ),
-      ConnectionStatus.asleep || ConnectionStatus.none => DeviceStatus(
+      ConnectionStatus.asleep ||
+      ConnectionStatus.off ||
+      ConnectionStatus.none => DeviceStatus(
         label: 'No device',
         icon: AppIcons.plugs,
         color: p.n(400),
@@ -241,13 +260,16 @@ class _DeviceSummary extends StatelessWidget {
     final writeAsleep = context.select<EditSessionViewModel, bool>(
       (e) => e.writeError?.asleep ?? false,
     );
-    final asleep = shell.deviceAsleep || writeAsleep;
-    final status = DeviceStatus.of(context, shell, asleep: asleep);
+    final off = shell.deviceOff;
+    final asleep = !off && (shell.deviceAsleep || writeAsleep);
+    final status = DeviceStatus.of(context, shell, asleep: asleep, off: off);
     final online = shell.isOnline;
     final battery = shell.batteryPercent;
-    final showBattery = battery != null && (online || shell.deviceAsleep);
+    final showBattery =
+        battery != null && (online || shell.deviceAsleep || off);
     final sub = switch (shell.status) {
       ConnectionStatus.asleep => 'Retrying automatically',
+      ConnectionStatus.off => 'Waiting for the mouse',
       ConnectionStatus.disconnected => 'Edits kept · reconnect to apply',
       ConnectionStatus.loading => 'Reading settings…',
       _ when shell.needsUserGrant => 'Click Connect to pair',
@@ -277,7 +299,7 @@ class _DeviceSummary extends StatelessWidget {
                   child: Icon(
                     AppIcons.mouseSimple,
                     size: 20,
-                    color: online && !asleep ? n.textColor : p.n(500),
+                    color: online && !asleep && !off ? n.textColor : p.n(500),
                   ),
                 ),
                 Positioned(
@@ -287,7 +309,7 @@ class _DeviceSummary extends StatelessWidget {
                     width: 10,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: status.color,
+                      color: status.dot ?? status.color,
                       shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: p.bg, spreadRadius: 2)],
                     ),
@@ -317,7 +339,9 @@ class _DeviceSummary extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: status.color.withValues(alpha: 0.15),
+                          color:
+                              status.tint ??
+                              status.color.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -365,7 +389,7 @@ class _DeviceSummary extends StatelessWidget {
                         _Battery(
                           percent: battery,
                           charge: shell.chargeState,
-                          stale: asleep,
+                          stale: asleep || off,
                         ),
                       if (!online) Flexible(child: Text(sub)),
                     ],

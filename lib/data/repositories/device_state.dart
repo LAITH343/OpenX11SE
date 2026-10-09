@@ -2,6 +2,8 @@ import '../../domain/device_info.dart';
 import '../../domain/device_settings.dart';
 import '../hid/hid_transport.dart';
 
+enum MouseLink { awake, asleep, off }
+
 sealed class DeviceState {
   const DeviceState();
 }
@@ -31,36 +33,50 @@ final class DeviceAsleep extends DeviceState {
   String toString() => 'DeviceAsleep($device)';
 }
 
+final class DeviceOff extends DeviceState {
+  const DeviceOff(this.device);
+
+  final HidDeviceInfo device;
+
+  @override
+  String toString() => 'DeviceOff($device)';
+}
+
 final class DeviceReady extends DeviceState {
   const DeviceReady({
     required this.device,
     required this.info,
     required this.settings,
     required this.includesButtons,
-    this.asleep = false,
+    this.link = MouseLink.awake,
   });
 
   final HidDeviceInfo device;
   final DeviceInfo info;
   final DeviceSettings settings;
   final bool includesButtons;
-  final bool asleep;
+  final MouseLink link;
+
+  bool get asleep => link == MouseLink.asleep;
+
+  bool get off => link == MouseLink.off;
 
   DeviceReady copyWith({
     DeviceInfo? info,
     DeviceSettings? settings,
     bool? includesButtons,
-    bool? asleep,
+    MouseLink? link,
   }) => DeviceReady(
     device: device,
     info: info ?? this.info,
     settings: settings ?? this.settings,
     includesButtons: includesButtons ?? this.includesButtons,
-    asleep: asleep ?? this.asleep,
+    link: link ?? this.link,
   );
 
   @override
-  String toString() => 'DeviceReady($info${asleep ? ', asleep' : ''})';
+  String toString() =>
+      'DeviceReady($info${link == MouseLink.awake ? '' : ', ${link.name}'})';
 }
 
 final class DeviceFailed extends DeviceState {

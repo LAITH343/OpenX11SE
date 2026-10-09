@@ -46,7 +46,13 @@ class DeviceReadException implements Exception {
       'DeviceReadException(0x${reportId.toRadixString(16)}): $message';
 }
 
-enum DeviceWriteFailure { disconnected, rejected, noAcknowledgement, asleep }
+enum DeviceWriteFailure {
+  disconnected,
+  rejected,
+  noAcknowledgement,
+  asleep,
+  off,
+}
 
 class DeviceWriteException implements Exception {
   const DeviceWriteException(this.reportId, this.failure, {this.cause});

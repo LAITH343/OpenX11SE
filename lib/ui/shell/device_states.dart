@@ -295,6 +295,86 @@ class AsleepState extends StatelessWidget {
   }
 }
 
+class OffState extends StatelessWidget {
+  const OffState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final n = context.nocturne;
+    final p = n.palette;
+    final shell = context.watch<ShellViewModel>();
+    return _StatePage(
+      children: [
+        SizedBox(
+          width: 72,
+          height: 72,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              _DeviceDisc(
+                child: Icon(AppIcons.mouseSimple, size: 32, color: p.n(500)),
+              ),
+              Positioned(
+                right: -6,
+                top: -6,
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: p.bg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(AppIcons.power, size: 15, color: p.n(400)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const _Heading(
+          title: 'Mouse is off',
+          body:
+              'Turn the mouse on with the switch on the underside. Settings '
+              'will load automatically.',
+        ),
+        Wrap(
+          spacing: 14,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: p.n(500),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  shell.sleepChecking
+                      ? 'Checking…'
+                      : 'Dongle connected · waiting for the mouse',
+                  style: n.text.small.copyWith(color: n.textSecondary),
+                ),
+              ],
+            ),
+            AppButton(
+              label: 'Check again',
+              icon: AppIcons.arrowsClockwise,
+              onPressed: shell.sleepChecking ? null : shell.checkSleep,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class LoadingState extends StatelessWidget {
   const LoadingState({super.key});
 

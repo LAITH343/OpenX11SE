@@ -50,6 +50,7 @@ abstract final class AppIcons {
   static const moonStars = IconData(0xe58e, fontFamily: 'Phosphor');
   static const mouse = IconData(0xe33a, fontFamily: 'Phosphor');
   static const mouseSimple = IconData(0xe644, fontFamily: 'Phosphor');
+  static const power = IconData(0xe3da, fontFamily: 'Phosphor');
   static const musicNotes = IconData(0xe340, fontFamily: 'Phosphor');
   static const pencilSimple = IconData(0xe3b4, fontFamily: 'Phosphor');
   static const plugs = IconData(0xeb56, fontFamily: 'Phosphor');
