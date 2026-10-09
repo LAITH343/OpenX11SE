@@ -16,6 +16,7 @@ import '../widgets/surface_card.dart';
 import '../widgets/tag.dart';
 import '../widgets/toggle.dart';
 import 'settings_view_model.dart';
+import 'update_view_model.dart';
 
 class SettingsSection extends StatelessWidget {
   const SettingsSection({super.key});
@@ -212,6 +213,7 @@ class _BehaviourCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<SettingsViewModel>();
+    final updates = context.watch<UpdateViewModel>();
     return _RowsCard(
       children: [
         ToggleRow(
@@ -245,6 +247,14 @@ class _BehaviourCard extends StatelessWidget {
                 'allowed to use.',
             value: vm.autoReconnect,
             onChanged: (v) => unawaited(vm.setAutoReconnect(v)),
+          ),
+        if (updates.isSupported)
+          ToggleRow(
+            title: 'Automatically check for updates',
+            description:
+                'Look for a new release on GitHub once a day at start-up.',
+            value: updates.autoCheck,
+            onChanged: (v) => unawaited(updates.setAutoCheck(v)),
           ),
       ],
     );
@@ -318,8 +328,9 @@ class _AboutCard extends StatelessWidget {
         spacing: 10,
         children: [
           Text('About', style: n.text.subheading),
-          const _InfoLine('OpenX11SE', SettingsViewModel.appVersion),
+          _InfoLine('OpenX11SE', vm.appVersion),
           _InfoLine('Build', vm.buildText),
+          const _UpdateRow(),
           Text(
             '${vm.platformNote} Not affiliated with Attack Shark.',
             style: n.text.caption.copyWith(color: n.textSecondary),
@@ -332,7 +343,7 @@ class _AboutCard extends StatelessWidget {
                 onPressed: () => showLicensePage(
                   context: context,
                   applicationName: 'OpenX11SE',
-                  applicationVersion: SettingsViewModel.appVersion,
+                  applicationVersion: vm.appVersion,
                 ),
               ),
               _Link(
@@ -370,6 +381,58 @@ class _Link extends StatelessWidget {
           decorationColor: n.accent,
         ),
       ),
+    );
+  }
+}
+
+class _UpdateRow extends StatelessWidget {
+  const _UpdateRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final n = context.nocturne;
+    final vm = context.watch<UpdateViewModel>();
+    if (!vm.isSupported) return const SizedBox.shrink();
+    final failed = vm.status == UpdateStatus.failed;
+    final (label, icon, action) = switch (vm.status) {
+      UpdateStatus.checking => ('Checking…', AppIcons.circleNotch, null),
+      UpdateStatus.available ||
+      UpdateStatus.downloading ||
+      UpdateStatus.ready ||
+      UpdateStatus.installing => (
+        'View update',
+        AppIcons.downloadSimple,
+        vm.openDialog,
+      ),
+      UpdateStatus.failed => (
+        'Retry',
+        AppIcons.arrowClockwise,
+        () => unawaited(vm.retry()),
+      ),
+      _ => (
+        'Check for updates',
+        AppIcons.arrowsClockwise,
+        () => unawaited(vm.checkNow()),
+      ),
+    };
+    return Row(
+      spacing: 12,
+      children: [
+        Expanded(
+          child: Text(
+            vm.statusText,
+            style: n.text.small.copyWith(
+              color: failed ? n.palette.danger : n.textSecondary,
+            ),
+          ),
+        ),
+        AppButton(
+          label: label,
+          icon: icon,
+          size: AppButtonSize.small,
+          onPressed: action,
+        ),
+      ],
     );
   }
 }

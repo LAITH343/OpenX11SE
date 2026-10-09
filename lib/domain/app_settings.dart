@@ -10,6 +10,8 @@ class AppSettings {
     this.startWithSystem = false,
     this.minimiseToTray = true,
     this.autoReconnect = true,
+    this.autoCheckUpdates = true,
+    this.lastUpdateCheck,
   });
 
   static const defaults = AppSettings();
@@ -22,6 +24,8 @@ class AppSettings {
   final bool startWithSystem;
   final bool minimiseToTray;
   final bool autoReconnect;
+  final bool autoCheckUpdates;
+  final DateTime? lastUpdateCheck;
 
   AppSettings copyWith({
     AppTheme? theme,
@@ -32,6 +36,8 @@ class AppSettings {
     bool? startWithSystem,
     bool? minimiseToTray,
     bool? autoReconnect,
+    bool? autoCheckUpdates,
+    DateTime? lastUpdateCheck,
   }) => AppSettings(
     theme: theme ?? this.theme,
     accentFollowsStage: accentFollowsStage ?? this.accentFollowsStage,
@@ -41,6 +47,8 @@ class AppSettings {
     startWithSystem: startWithSystem ?? this.startWithSystem,
     minimiseToTray: minimiseToTray ?? this.minimiseToTray,
     autoReconnect: autoReconnect ?? this.autoReconnect,
+    autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
+    lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
   );
 
   @override
@@ -53,7 +61,9 @@ class AppSettings {
       other.lastSection == lastSection &&
       other.startWithSystem == startWithSystem &&
       other.minimiseToTray == minimiseToTray &&
-      other.autoReconnect == autoReconnect;
+      other.autoReconnect == autoReconnect &&
+      other.autoCheckUpdates == autoCheckUpdates &&
+      other.lastUpdateCheck == lastUpdateCheck;
 
   @override
   int get hashCode => Object.hash(
@@ -65,6 +75,8 @@ class AppSettings {
     startWithSystem,
     minimiseToTray,
     autoReconnect,
+    autoCheckUpdates,
+    lastUpdateCheck,
   );
 
   @override

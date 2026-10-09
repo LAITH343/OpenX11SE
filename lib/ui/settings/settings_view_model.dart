@@ -33,6 +33,7 @@ class SettingsViewModel extends ChangeNotifier {
     AppSettings initial = AppSettings.defaults,
     this._system = const NoSystemIntegration(),
     this.isWeb = kIsWeb,
+    this.appVersion = '1.0.0',
   }) : _settings = initial {
     _edit.addListener(_syncAccent);
     _shell.addListener(notifyListeners);
@@ -44,7 +45,6 @@ class SettingsViewModel extends ChangeNotifier {
     unawaited(_syncSystem(null));
   }
 
-  static const appVersion = '1.0.0';
   static const sourceUrl = 'https://github.com/LAITH343/OpenX11SE';
 
   final SettingsRepository _repository;
@@ -55,6 +55,7 @@ class SettingsViewModel extends ChangeNotifier {
   final ProfilesViewModel _profiles;
   final SystemIntegration _system;
   final bool isWeb;
+  final String appVersion;
   late final StreamSubscription<AppSettings> _subscription;
 
   AppSettings _settings;

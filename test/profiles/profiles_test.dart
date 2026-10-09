@@ -86,6 +86,9 @@ class FakeSystem implements SystemIntegration {
   @override
   Future<void> setMinimiseToTray(bool enabled) async =>
       calls.add('tray $enabled');
+
+  @override
+  Future<void> quit() async => calls.add('quit');
 }
 
 Uint8List vendorFile({required void Function(ByteData profile) fill}) {

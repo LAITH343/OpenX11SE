@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
+import 'app_button.dart';
 import 'motion.dart';
 
 enum ToastKind { info, success, warning, error }
@@ -15,12 +16,18 @@ class ToastMessage {
     required this.text,
     this.kind = ToastKind.info,
     this.icon,
+    this.actionLabel,
+    this.onAction,
   });
 
   final int id;
   final String text;
   final ToastKind kind;
   final IconData? icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  bool get hasAction => actionLabel != null && onAction != null;
 }
 
 class ToastController extends ChangeNotifier {
@@ -39,18 +46,30 @@ class ToastController extends ChangeNotifier {
 
   List<ToastMessage> get toasts => List.unmodifiable(_toasts);
 
-  void show(String text, {ToastKind kind = ToastKind.info, IconData? icon}) {
+  void show(
+    String text, {
+    ToastKind kind = ToastKind.info,
+    IconData? icon,
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration? lifetime,
+  }) {
     final toast = ToastMessage(
       id: _nextId++,
       text: text,
       kind: kind,
       icon: icon,
+      actionLabel: actionLabel,
+      onAction: onAction,
     );
     _toasts.add(toast);
     while (_toasts.length > maxVisible) {
       _timers.remove(_toasts.removeAt(0).id)?.cancel();
     }
-    _timers[toast.id] = Timer(lifetime, () => dismiss(toast.id));
+    _timers[toast.id] = Timer(
+      lifetime ?? this.lifetime,
+      () => dismiss(toast.id),
+    );
     notifyListeners();
   }
 
@@ -99,6 +118,12 @@ class ToastHost extends StatelessWidget {
                   child: _ToastCard(
                     toast: t,
                     onTap: onDismiss == null ? null : () => onDismiss!(t.id),
+                    onAction: t.hasAction
+                        ? () {
+                            onDismiss?.call(t.id);
+                            t.onAction!();
+                          }
+                        : null,
                   ),
                 ),
               ),
@@ -110,10 +135,11 @@ class ToastHost extends StatelessWidget {
 }
 
 class _ToastCard extends StatelessWidget {
-  const _ToastCard({required this.toast, this.onTap});
+  const _ToastCard({required this.toast, this.onTap, this.onAction});
 
   final ToastMessage toast;
   final VoidCallback? onTap;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +167,15 @@ class _ToastCard extends StatelessWidget {
             Icon(toast.icon ?? fallback, size: 18, color: color),
             const SizedBox(width: 10),
             Flexible(child: Text(toast.text, style: n.text.small)),
+            if (onAction != null) ...[
+              const SizedBox(width: 10),
+              AppButton(
+                label: toast.actionLabel!,
+                size: AppButtonSize.small,
+                variant: AppButtonVariant.ghost,
+                onPressed: onAction,
+              ),
+            ],
           ],
         ),
       ),

@@ -10,6 +10,8 @@ abstract interface class SystemIntegration {
   Future<void> setLaunchAtStartup(bool enabled);
 
   Future<void> setMinimiseToTray(bool enabled);
+
+  Future<void> quit();
 }
 
 class NoSystemIntegration implements SystemIntegration {
@@ -26,6 +28,9 @@ class NoSystemIntegration implements SystemIntegration {
 
   @override
   Future<void> setMinimiseToTray(bool enabled) async {}
+
+  @override
+  Future<void> quit() async {}
 }
 
 const startMinimisedArgument = '--minimized';

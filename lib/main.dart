@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
@@ -14,13 +17,16 @@ import 'data/repositories/profile_repository.dart';
 import 'data/repositories/profile_transfer_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/system/system_integration.dart';
+import 'data/update/update_repository.dart';
 import 'domain/app_settings.dart';
+import 'domain/app_version.dart';
 import 'ui/buttons/buttons_view_model.dart';
 import 'ui/lighting/lighting_view_model.dart';
 import 'ui/macros/macro_library_view_model.dart';
 import 'ui/performance/performance_view_model.dart';
 import 'ui/power/power_view_model.dart';
 import 'ui/settings/settings_view_model.dart';
+import 'ui/settings/update_view_model.dart';
 import 'ui/shell/appearance_view_model.dart';
 import 'ui/shell/edit_session_view_model.dart';
 import 'ui/shell/profiles_view_model.dart';
@@ -46,6 +52,7 @@ Future<void> main(List<String> args) async {
   final system = createSystemIntegration();
   final toTray = appSettings.minimiseToTray && system.supportsTray;
   final startMinimised = args.contains(startMinimisedArgument);
+  final version = await _appVersion();
   await initWindow(
     minimised: startMinimised && !toTray,
     hidden: startMinimised && toTray,
@@ -131,7 +138,26 @@ Future<void> main(List<String> args) async {
             profiles: context.read(),
             initial: appSettings,
             system: system,
+            appVersion: version?.toString() ?? '—',
           ),
+        ),
+        ChangeNotifierProvider(
+          lazy: false,
+          create: (context) {
+            final updates = UpdateViewModel(
+              repository: version == null
+                  ? const NoUpdateRepository()
+                  : createUpdateRepository(),
+              settings: context.read(),
+              edit: context.read(),
+              toasts: context.read(),
+              currentVersion: version ?? const AppVersion(0, 0, 0),
+              quit: system.quit,
+              initial: appSettings,
+            );
+            unawaited(updates.checkOnStartup());
+            return updates;
+          },
         ),
         ChangeNotifierProvider(
           create: (context) => PerformanceViewModel(
@@ -162,6 +188,14 @@ Future<void> main(List<String> args) async {
       child: const OpenX11SeApp(),
     ),
   );
+}
+
+Future<AppVersion?> _appVersion() async {
+  try {
+    return AppVersion.tryParse((await PackageInfo.fromPlatform()).version);
+  } on Object {
+    return null;
+  }
 }
 
 void _reportUncaughtErrors() {

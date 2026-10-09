@@ -107,6 +107,17 @@ class WindowsSystemIntegration
     );
   }
 
+  @override
+  Future<void> quit() async {
+    try {
+      if (_tray) await trayManager.destroy();
+      await windowManager.setPreventClose(false);
+      await windowManager.destroy();
+    } finally {
+      exit(0);
+    }
+  }
+
   Future<void> _show() async {
     await windowManager.show();
     await windowManager.focus();

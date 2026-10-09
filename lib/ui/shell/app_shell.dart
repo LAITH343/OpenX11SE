@@ -9,6 +9,8 @@ import '../buttons/buttons_view_model.dart';
 import '../buttons/function_picker.dart';
 import '../macros/macro_assign_dialog.dart';
 import '../macros/macro_library_view_model.dart';
+import '../settings/update_dialog.dart';
+import '../settings/update_view_model.dart';
 import '../widgets/toast_host.dart';
 import 'app_header.dart';
 import 'device_states.dart';
@@ -48,6 +50,7 @@ class _AppShellState extends State<AppShell> {
     final edit = context.read<EditSessionViewModel>();
     final buttons = context.read<ButtonsViewModel>();
     final macros = context.read<MacroLibraryViewModel>();
+    final updates = context.read<UpdateViewModel>();
     final profileName = context.select<ShellViewModel, String>(
       (s) => s.profileName,
     );
@@ -60,6 +63,7 @@ class _AppShellState extends State<AppShell> {
             unawaited(edit.apply()),
         const SingleActivator(LogicalKeyboardKey.escape): () =>
             shell.dismissTopmost() ||
+            updates.closeDialog() ||
             buttons.closePicker() ||
             macros.closeAssign(),
       },
@@ -104,6 +108,7 @@ class _AppShellState extends State<AppShell> {
                       const ProfileMenuLayer(),
                       const FunctionPickerLayer(),
                       const MacroAssignLayer(),
+                      const UpdateDialogLayer(),
                       const DialogLayer(),
                       const _Toasts(),
                     ],

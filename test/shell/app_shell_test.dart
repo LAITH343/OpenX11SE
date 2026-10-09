@@ -12,6 +12,8 @@ import 'package:openx11se/data/repositories/macro_repository.dart';
 import 'package:openx11se/data/repositories/profile_repository.dart';
 import 'package:openx11se/data/repositories/profile_transfer_repository.dart';
 import 'package:openx11se/data/repositories/settings_repository.dart';
+import 'package:openx11se/data/update/update_repository.dart';
+import 'package:openx11se/domain/app_version.dart';
 import 'package:openx11se/domain/polling_rate.dart';
 import 'package:openx11se/ui/buttons/buttons_view_model.dart';
 import 'package:openx11se/ui/lighting/lighting_view_model.dart';
@@ -19,6 +21,7 @@ import 'package:openx11se/ui/macros/macro_library_view_model.dart';
 import 'package:openx11se/ui/power/power_view_model.dart';
 import 'package:openx11se/ui/performance/performance_view_model.dart';
 import 'package:openx11se/ui/settings/settings_view_model.dart';
+import 'package:openx11se/ui/settings/update_view_model.dart';
 import 'package:openx11se/ui/shell/app_section.dart';
 import 'package:openx11se/ui/shell/app_shell.dart';
 import 'package:openx11se/ui/shell/appearance_view_model.dart';
@@ -69,6 +72,7 @@ void main() {
     late final ProfilesViewModel profilesVm;
     late final AppearanceViewModel appearance;
     late final SettingsViewModel settingsVm;
+    late final UpdateViewModel updates;
     await tester.runAsync(() async {
       final db = AppDatabase(sqlite3.openInMemory());
       final profiles = ProfileRepository(db);
@@ -123,6 +127,14 @@ void main() {
         profiles: profilesVm,
         isWeb: false,
       );
+      updates = UpdateViewModel(
+        repository: const NoUpdateRepository(),
+        settings: settings,
+        edit: edit,
+        toasts: toasts,
+        currentVersion: const AppVersion(1, 0, 0),
+        quit: () async {},
+      );
     });
 
     await tester.pumpWidget(
@@ -138,6 +150,7 @@ void main() {
           ChangeNotifierProvider.value(value: macroLibrary),
           ChangeNotifierProvider.value(value: profilesVm),
           ChangeNotifierProvider.value(value: settingsVm),
+          ChangeNotifierProvider.value(value: updates),
         ],
         child: MaterialApp(
           theme: buildNocturneTheme(nocturneDark),
@@ -264,6 +277,7 @@ void main() {
       lighting.dispose();
       power.dispose();
       macroLibrary.dispose();
+      updates.dispose();
       settingsVm.dispose();
       profilesVm.dispose();
       appearance.dispose();
