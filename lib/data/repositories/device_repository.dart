@@ -14,13 +14,14 @@ class DeviceRepository {
   DeviceRepository(
     this._transport, {
     DeviceTiming Function(ConnectionType)? timing,
-    this.wakeRetryInterval = const Duration(seconds: 2),
+    this.wakeRetryInterval = const Duration(seconds: 10),
   }) : _timing = timing ?? DeviceTiming.forConnection;
 
   final HidTransport _transport;
   final DeviceTiming Function(ConnectionType) _timing;
   final Duration wakeRetryInterval;
   Timer? _wakeRetry;
+  bool _awaitingWake = false;
   final _states = StreamController<DeviceState>.broadcast();
   final _stageChanges = StreamController<int>.broadcast();
   DeviceState _state = const DeviceAbsent();
@@ -106,6 +107,7 @@ class DeviceRepository {
 
   Future<void> _loadOrWait(DeviceSession session, int generation) async {
     _wakeRetry?.cancel();
+    _awaitingWake = false;
     try {
       await _load(session, generation);
     } on DeviceReadException catch (e) {
@@ -114,6 +116,10 @@ class DeviceRepository {
       }
       if (generation != _generation) return;
       _setState(DeviceAsleep(session.device));
+      if (session.supportsNotifications) {
+        _awaitingWake = true;
+        return;
+      }
       _wakeRetry = Timer(
         wakeRetryInterval,
         () => unawaited(_retryAsleep(session, generation)),
@@ -123,6 +129,7 @@ class DeviceRepository {
 
   Future<void> _retryAsleep(DeviceSession session, int generation) async {
     _wakeRetry?.cancel();
+    _awaitingWake = false;
     if (generation != _generation || _state is! DeviceAsleep) return;
     try {
       await _loadOrWait(session, generation);
@@ -170,7 +177,7 @@ class DeviceRepository {
     final session = _session;
     if (state is DeviceAsleep &&
         session != null &&
-        _wakeRetry?.isActive == true) {
+        (_awaitingWake || _wakeRetry?.isActive == true)) {
       unawaited(_retryAsleep(session, _generation));
     }
     switch (event) {
@@ -221,6 +228,7 @@ class DeviceRepository {
 
   Future<void> _closeSession() async {
     _wakeRetry?.cancel();
+    _awaitingWake = false;
     final session = _session;
     _session = null;
     await _notifications?.cancel();

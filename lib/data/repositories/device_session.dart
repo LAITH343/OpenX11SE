@@ -78,6 +78,8 @@ class DeviceSession {
 
   ConnectionType get connection => _connection.connectionType;
 
+  bool get supportsNotifications => _connection.supportsNotifications;
+
   Stream<DeviceNotification> get notifications => _events.stream;
 
   Future<void> get closed => _connection.closed;

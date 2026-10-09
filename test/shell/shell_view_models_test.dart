@@ -165,7 +165,9 @@ void main() {
     transport.factories['dongle'] = () => connection;
     transport.setPresent([dongleDevice]);
     await until(() => shell.status == ConnectionStatus.asleep);
-    connection.asleep = false;
+    connection
+      ..asleep = false
+      ..notify('03 07 40 01 60');
     await until(() => shell.status == ConnectionStatus.connected);
     expect(edit.saved, defaults);
   });

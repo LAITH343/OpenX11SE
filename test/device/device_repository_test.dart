@@ -350,16 +350,34 @@ void main() {
       expect((repository.state as DeviceReady).settings, next);
     });
 
-    test('a sleeping mouse behind the dongle is read once it wakes', () async {
+    test('a sleeping mouse is not polled until it sends a report', () async {
       final connection = FakeHidConnection(dongleDevice)..asleep = true;
       transport.factories['dongle'] = () => connection;
       repository.start();
       transport.setPresent([dongleDevice]);
       await repository.states.firstWhere((s) => s is DeviceAsleep);
-      connection.asleep = false;
-      final ready = await waitReady(repository);
-      expect(ready.settings, defaults);
+      final sentWhileAsleep = connection.sent.length;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(connection.sent.length, sentWhileAsleep);
+      expect(repository.state, isA<DeviceAsleep>());
     });
+
+    test(
+      'without a notification channel a sleeping mouse is retried',
+      () async {
+        final connection = FakeHidConnection(
+          dongleDevice,
+          supportsNotifications: false,
+        )..asleep = true;
+        transport.factories['dongle'] = () => connection;
+        repository.start();
+        transport.setPresent([dongleDevice]);
+        await repository.states.firstWhere((s) => s is DeviceAsleep);
+        connection.asleep = false;
+        final ready = await waitReady(repository);
+        expect(ready.settings, defaults);
+      },
+    );
 
     test('a battery report wakes the read immediately', () async {
       final connection = FakeHidConnection(dongleDevice)..asleep = true;
