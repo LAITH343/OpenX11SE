@@ -350,12 +350,14 @@ class Win32Hid {
     }
   }
 
-  int openReadWrite(String path, {bool overlapped = false}) {
-    final handle = _open(
-      path,
-      _genericRead | _genericWrite,
-      overlapped ? _fileFlagOverlapped : 0,
-    );
+  int openReadWrite(String path) =>
+      _openChecked(path, _genericRead | _genericWrite, 0);
+
+  int openOverlappedReader(String path) =>
+      _openChecked(path, _genericRead, _fileFlagOverlapped);
+
+  int _openChecked(String path, int access, int flags) {
+    final handle = _open(path, access, flags);
     if (handle == _invalidHandle) {
       throw Win32HidException('CreateFile', _lastError());
     }

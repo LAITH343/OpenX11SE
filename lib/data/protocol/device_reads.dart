@@ -17,7 +17,7 @@ Uint8List encodeReadRequest(int reportId, int length, {int arg = 1}) =>
     ]);
 
 Uint8List versionReadRequest() =>
-    encodeReadRequest(ReportId.version, ReportLength.version, arg: 0);
+    encodeReadRequest(ReportId.version, ReportLength.version);
 
 Uint8List snapshotReadRequest() =>
     encodeReadRequest(ReportId.snapshot, ReportLength.snapshot);

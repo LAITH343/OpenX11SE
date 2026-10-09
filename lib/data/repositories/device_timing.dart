@@ -4,8 +4,8 @@ class DeviceTiming {
   const DeviceTiming({
     required this.reportGap,
     this.readDelay = const Duration(milliseconds: 100),
-    this.readAttempts = 3,
-    this.busyPolls = 5,
+    this.readAttempts = 5,
+    this.busyPolls = 3,
     this.ackTimeout = const Duration(seconds: 3),
     this.writeAttempts = 3,
   });

@@ -101,12 +101,7 @@ class WindowsHidTransport implements HidTransport {
       throw const HidException('Device not found', disconnected: true);
     }
     final handle =
-        (await worker.request([
-              WorkerOp.open,
-              entry.featurePath,
-              entry.featureLength,
-            ]))!
-            as int;
+        (await worker.request([WorkerOp.open, entry.featurePath]))! as int;
     final connection = WindowsHidConnection._(worker, entry, handle);
     await connection._startReader();
     return connection;

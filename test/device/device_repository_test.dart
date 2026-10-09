@@ -54,7 +54,7 @@ void main() {
       final connection = FakeHidConnection(wiredDevice, busyResponses: 2);
       final session = DeviceSession(connection, instant);
       expect(await session.readVersion(), 0x0105);
-      expect(connection.sent.single, hex('A0 0B 08 00 00 00 00 00'));
+      expect(connection.sent.single, hex('A0 0B 08 00 01 00 00 00'));
     });
 
     test('decodes the captured snapshot', () async {

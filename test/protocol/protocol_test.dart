@@ -382,7 +382,7 @@ void main() {
 
   group('Reads', () {
     test('request bytes', () {
-      expect(versionReadRequest(), hex('A0 0B 08 00 00 00 00 00'));
+      expect(versionReadRequest(), hex('A0 0B 08 00 01 00 00 00'));
       expect(snapshotReadRequest(), hex('A0 0A 80 00 01 00 00 00'));
       expect(dpiReadRequest(), hex('A0 04 38 00 01 00 00 00'));
       expect(lightingReadRequest(), hex('A0 05 0F 00 01 00 00 00'));

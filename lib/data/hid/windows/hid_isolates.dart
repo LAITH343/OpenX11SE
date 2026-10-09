@@ -42,31 +42,20 @@ void hidWorkerMain(SendPort replies) {
   final api = Win32Hid();
   final probes = <String, HidInterfaceProbe?>{};
   final names = <String, String?>{};
-  final featureLengths = <int, int>{};
 
   Object? handle(List<Object?> m) {
     switch (m[1]) {
       case WorkerOp.enumerate:
         return _enumerate(api, probes, names);
       case WorkerOp.open:
-        final h = api.openReadWrite(m[2]! as String);
-        featureLengths[h] = m[3]! as int;
-        return h;
+        return api.openReadWrite(m[2]! as String);
       case WorkerOp.setFeature:
-        _setFeature(api, m[2]! as int, m[3]! as Uint8List, featureLengths);
+        api.setFeature(m[2]! as int, m[3]! as Uint8List);
         return null;
       case WorkerOp.getFeature:
-        return _getFeature(
-          api,
-          m[2]! as int,
-          m[3]! as int,
-          m[4]! as int,
-          featureLengths,
-        );
+        return api.getFeature(m[2]! as int, m[3]! as int, m[4]! as int);
       case WorkerOp.close:
-        final h = m[2]! as int;
-        featureLengths.remove(h);
-        api.close(h);
+        api.close(m[2]! as int);
         return null;
     }
     throw ArgumentError.value(m[1], 'op');
@@ -82,41 +71,6 @@ void hidWorkerMain(SendPort replies) {
       replies.send([m[0], false, e.toString(), false]);
     }
   });
-}
-
-void _setFeature(
-  Win32Hid api,
-  int handle,
-  Uint8List report,
-  Map<int, int> featureLengths,
-) {
-  try {
-    api.setFeature(handle, report);
-  } on Win32HidException catch (e) {
-    final max = featureLengths[handle] ?? 0;
-    if (e.disconnected || max <= report.length) rethrow;
-    api.setFeature(handle, Uint8List(max)..setAll(0, report));
-  }
-}
-
-Uint8List _getFeature(
-  Win32Hid api,
-  int handle,
-  int reportId,
-  int length,
-  Map<int, int> featureLengths,
-) {
-  try {
-    return api.getFeature(handle, reportId, length);
-  } on Win32HidException catch (e) {
-    final max = featureLengths[handle] ?? 0;
-    if (e.disconnected || max <= length) rethrow;
-    return Uint8List.sublistView(
-      api.getFeature(handle, reportId, max),
-      0,
-      length,
-    );
-  }
 }
 
 List<EnumeratedDevice> _enumerate(
@@ -215,7 +169,7 @@ Future<void> notificationReaderMain(List<Object?> args) async {
   int? handle;
   OverlappedReader? reader;
   try {
-    handle = api.openReadWrite(path, overlapped: true);
+    handle = api.openOverlappedReader(path);
     reader = api.overlappedReader(handle, length);
     events.send([ReaderEvent.ready, control.sendPort]);
     while (!stopped) {
