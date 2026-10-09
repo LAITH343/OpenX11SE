@@ -40,8 +40,13 @@ class NavRail extends StatelessWidget {
             ),
           const Spacer(),
           if (!compact && shell.isOnline)
-            _MouseWidget(
-              onPressed: () => shell.selectSection(AppSection.performance),
+            LayoutBuilder(
+              builder: (context, c) => c.maxWidth < 180
+                  ? const SizedBox.shrink()
+                  : _MouseWidget(
+                      onPressed: () =>
+                          shell.selectSection(AppSection.performance),
+                    ),
             ),
         ],
       ),
@@ -103,25 +108,34 @@ class _NavItem extends StatelessWidget {
                 ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 12),
-                child: Row(
-                  mainAxisAlignment: compact
-                      ? MainAxisAlignment.center
-                      : MainAxisAlignment.start,
-                  children: [
-                    Icon(section.icon, size: 18, color: active ? n.accent : fg),
-                    if (!compact) ...[
-                      const SizedBox(width: 11),
-                      Expanded(
-                        child: Text(
-                          section.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.clip,
-                          softWrap: false,
-                          style: n.text.row.copyWith(color: fg),
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    final iconOnly = compact || c.maxWidth < 48;
+                    return Row(
+                      mainAxisAlignment: iconOnly
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment.start,
+                      children: [
+                        Icon(
+                          section.icon,
+                          size: 18,
+                          color: active ? n.accent : fg,
                         ),
-                      ),
-                    ],
-                  ],
+                        if (!iconOnly) ...[
+                          const SizedBox(width: 11),
+                          Expanded(
+                            child: Text(
+                              section.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.clip,
+                              softWrap: false,
+                              style: n.text.row.copyWith(color: fg),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
               ),
               if (changed)

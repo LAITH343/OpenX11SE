@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_icons.dart';
+import '../performance/performance_section.dart';
 import '../widgets/app_button.dart';
 import '../widgets/motion.dart';
 import '../widgets/section_header.dart';
@@ -35,7 +36,10 @@ class SectionContent extends StatelessWidget {
                 const _OffBanner(),
               if (error != null) _WriteErrorBanner(error: error),
               EntranceTransition(
-                child: SectionPlaceholder(section: shell.section),
+                child: switch (shell.section) {
+                  AppSection.performance => const PerformanceSection(),
+                  final section => SectionPlaceholder(section: section),
+                },
               ),
             ],
           ),
