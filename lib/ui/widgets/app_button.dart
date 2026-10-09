@@ -99,7 +99,13 @@ class AppButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (icon != null) ...[Icon(icon), const SizedBox(width: 6)],
-                  Text(label),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   if (trailing != null) ...[
                     const SizedBox(width: 6),
                     trailing!,

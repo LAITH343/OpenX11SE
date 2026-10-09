@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,8 +8,8 @@ import '../../core/theme/nocturne_theme.dart';
 import '../widgets/motion.dart';
 import '../widgets/pressable.dart';
 import '../widgets/tag.dart';
+import 'profiles_view_model.dart';
 import 'shell_view_model.dart';
-import 'window/window_controls.dart';
 
 class ProfileMenuAnchor extends InheritedWidget {
   const ProfileMenuAnchor({
@@ -131,22 +133,31 @@ class _ProfileMenu extends StatelessWidget {
     final n = context.nocturne;
     final p = n.palette;
     final shell = context.watch<ShellViewModel>();
+    final vm = context.watch<ProfilesViewModel>();
+    VoidCallback? run(Future<void> Function() action) => vm.busy
+        ? null
+        : () {
+            shell.closeProfileMenu();
+            unawaited(action());
+          };
     final actions = [
-      const _Action('New profile', AppIcons.plus),
-      const _Action('Duplicate', AppIcons.copy),
-      const _Action('Rename…', AppIcons.pencilSimple),
-      const _Action('Delete…', AppIcons.trash),
-      const _Action('Import file…', AppIcons.fileArrowUp),
-      const _Action('Export…', AppIcons.downloadSimple),
-      if (hasWindowChrome)
-        const _Action(
+      _Action('New profile', AppIcons.plus, run(vm.create)),
+      _Action('Duplicate', AppIcons.copy, run(vm.duplicate)),
+      _Action('Rename…', AppIcons.pencilSimple, run(vm.rename)),
+      _Action('Delete…', AppIcons.trash, run(vm.delete)),
+      _Action('Import file…', AppIcons.fileArrowUp, run(vm.importFile)),
+      _Action('Export…', AppIcons.downloadSimple, run(vm.export)),
+      if (vm.supportsVendorImport)
+        _Action(
           'Import from vendor software…',
           AppIcons.arrowSquareIn,
+          run(vm.importVendor),
           wide: true,
         ),
-      const _Action(
+      _Action(
         'Restore defaults…',
         AppIcons.arrowCounterClockwise,
+        run(vm.restoreDefaults),
         wide: true,
         danger: true,
       ),
@@ -199,7 +210,9 @@ class _ProfileMenu extends StatelessWidget {
             for (final profile in shell.profiles)
               _MenuRow(
                 height: 34,
-                onPressed: profile.isActive ? shell.closeProfileMenu : null,
+                onPressed: profile.isActive
+                    ? shell.closeProfileMenu
+                    : run(() => vm.select(profile)),
                 child: Row(
                   children: [
                     SizedBox(
@@ -238,13 +251,15 @@ class _ProfileMenu extends StatelessWidget {
 class _Action {
   const _Action(
     this.label,
-    this.icon, {
+    this.icon,
+    this.onPressed, {
     this.wide = false,
     this.danger = false,
   });
 
   final String label;
   final IconData icon;
+  final VoidCallback? onPressed;
   final bool wide;
   final bool danger;
 }
@@ -260,7 +275,7 @@ class _ActionItem extends StatelessWidget {
     final fg = action.danger ? n.palette.danger : n.textColor;
     return _MenuRow(
       height: 32,
-      onPressed: null,
+      onPressed: action.onPressed,
       dimWhenDisabled: true,
       child: Row(
         children: [

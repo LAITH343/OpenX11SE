@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
@@ -65,6 +66,8 @@ class EditSessionViewModel extends ChangeNotifier {
   DeviceSettings? _staged;
   List<SettingsSection> _changes = const [];
   final Set<int> _changedMacroIds = {};
+  bool _sendAll = false;
+  bool _restorePending = false;
   DeviceSettings? _profileSettings;
   bool _online = false;
   bool _mouseOff = false;
@@ -82,11 +85,16 @@ class EditSessionViewModel extends ChangeNotifier {
 
   DeviceSettings? get staged => _staged;
 
-  int get pendingCount => _changes.length + _changedMacroIds.length;
+  int get pendingCount =>
+      (_sendAll
+          ? max(_changes.length, SettingsSection.values.length)
+          : _changes.length) +
+      _changedMacroIds.length;
 
-  bool get hasPending => _changes.isNotEmpty || _macrosPending;
+  bool get hasPending => _sendAll || _changes.isNotEmpty || _macrosPending;
 
   Set<SettingsSection> get dirtySections => {
+    if (_sendAll) ...SettingsSection.values,
     ..._changes,
     if (_macrosPending) SettingsSection.buttons,
   };
@@ -111,7 +119,9 @@ class EditSessionViewModel extends ChangeNotifier {
 
   bool get canApply => hasPending && !_writing && _online && !_mouseOff;
 
-  bool get canDiscard => _changes.isNotEmpty && !_writing;
+  bool get canDiscard => (_sendAll || _changes.isNotEmpty) && !_writing;
+
+  bool get restorePending => _restorePending;
 
   void stage(DeviceSettings Function(DeviceSettings current) change) {
     final current = _staged;
@@ -135,6 +145,32 @@ class EditSessionViewModel extends ChangeNotifier {
     _scheduleAutoApply();
   }
 
+  void loadProfile(int profileId, DeviceSettings settings) {
+    _profileId = profileId;
+    _profileSettings = settings;
+    if (_staged == null || _writing) return;
+    _staged = settings;
+    _sendAll = true;
+    _writeError = null;
+    _recompute();
+    notifyListeners();
+    _scheduleAutoApply();
+  }
+
+  Future<bool> restoreDefaults() async {
+    if (_staged == null || _writing) return false;
+    _staged = DeviceSettings.factoryDefaults;
+    _sendAll = true;
+    _restorePending = true;
+    _writeError = null;
+    _recompute();
+    notifyListeners();
+    if (!canApply) return false;
+    _autoApplyTimer?.cancel();
+    await apply();
+    return !hasPending;
+  }
+
   void _scheduleAutoApply() {
     if (!_autoApply) return;
     _autoApplyTimer?.cancel();
@@ -145,6 +181,8 @@ class EditSessionViewModel extends ChangeNotifier {
     final saved = _saved;
     if (saved == null || _writing || !canDiscard) return;
     _staged = saved;
+    _sendAll = false;
+    _restorePending = false;
     _writeError = null;
     _recompute();
     notifyListeners();
@@ -177,6 +215,8 @@ class EditSessionViewModel extends ChangeNotifier {
     if (!canApply || previous == null || next == null) return;
     final changed = dirtySections;
     final changedMacros = {..._changedMacroIds};
+    final sendAll = _sendAll;
+    final restore = _restorePending;
     _writing = true;
     _progress = 0.06;
     _writeError = null;
@@ -188,6 +228,8 @@ class EditSessionViewModel extends ChangeNotifier {
         previous: previous,
         macros: await _macrosFor(next),
         changedMacroIds: changedMacros,
+        restoreDefaults: restore,
+        sendAll: sendAll,
         onProgress: (done, total, nextReportId) {
           if (_disposed) return;
           _progress = total == 0 ? 1 : (done / total).clamp(0.06, 1.0);
@@ -199,6 +241,10 @@ class EditSessionViewModel extends ChangeNotifier {
       );
       if (_disposed) return;
       _saved = next;
+      if (identical(_staged, next)) {
+        _sendAll = false;
+        _restorePending = false;
+      }
       _changedMacroIds.removeAll(changedMacros);
       _recompute();
       _toasts.show(

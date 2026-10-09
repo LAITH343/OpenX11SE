@@ -17,6 +17,7 @@ class DeviceRepository {
     this.wakeRetryInterval = const Duration(seconds: 10),
     this.awakeReportGap = const Duration(seconds: 3),
     this.offTimeout = const Duration(seconds: 7),
+    this.autoConnect = true,
   }) : _timing = timing ?? DeviceTiming.forConnection;
 
   final HidTransport _transport;
@@ -24,6 +25,7 @@ class DeviceRepository {
   final Duration wakeRetryInterval;
   final Duration awakeReportGap;
   final Duration offTimeout;
+  bool autoConnect;
   final _clock = Stopwatch()..start();
   Duration? _lastBattery;
   bool _applying = false;
@@ -53,7 +55,12 @@ class DeviceRepository {
   Stream<int> get stageChanges => _stageChanges.stream;
 
   void start() {
-    _devices ??= _transport.devices.listen(_onDevices, onError: (_) {});
+    _devices ??= _transport.devices.listen(_onListedDevices, onError: (_) {});
+  }
+
+  void _onListedDevices(List<HidDeviceInfo> devices) {
+    if (!autoConnect && requiresUserGrant && _current == null) return;
+    _onDevices(devices);
   }
 
   Future<void> rescan() async => _onDevices(await _transport.enumerate());
@@ -336,6 +343,7 @@ class DeviceRepository {
     Map<int, Macro> macros = const {},
     Set<int> changedMacroIds = const {},
     bool restoreDefaults = false,
+    bool sendAll = false,
     ApplyProgress? onProgress,
   }) async {
     final session = _session;
@@ -350,7 +358,7 @@ class DeviceRepository {
       );
     }
     final reports = planApply(
-      previous: previous ?? state.settings,
+      previous: sendAll ? null : previous ?? state.settings,
       next: next,
       connection: session.connection,
       macros: macros,

@@ -9,37 +9,63 @@ import 'data/repositories/device_cache_repository.dart';
 import 'data/repositories/device_repository.dart';
 import 'data/repositories/macro_repository.dart';
 import 'data/repositories/profile_repository.dart';
+import 'data/repositories/profile_transfer_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'data/system/system_integration.dart';
+import 'domain/app_settings.dart';
 import 'ui/buttons/buttons_view_model.dart';
 import 'ui/lighting/lighting_view_model.dart';
 import 'ui/macros/macro_library_view_model.dart';
 import 'ui/performance/performance_view_model.dart';
 import 'ui/power/power_view_model.dart';
+import 'ui/settings/settings_view_model.dart';
 import 'ui/shell/appearance_view_model.dart';
 import 'ui/shell/edit_session_view_model.dart';
+import 'ui/shell/profiles_view_model.dart';
 import 'ui/shell/shell_view_model.dart';
 import 'ui/shell/window/window_controls.dart';
 import 'ui/widgets/toast_host.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initWindow();
   final database = await openAppDatabase();
   final profiles = ProfileRepository(database);
   await profiles.ensureDefault();
+  final settings = SettingsRepository(database);
+  final appSettings = await settings.settings();
+  final system = createSystemIntegration();
+  final toTray = appSettings.minimiseToTray && system.supportsTray;
+  final startMinimised = args.contains(startMinimisedArgument);
+  await initWindow(
+    minimised: startMinimised && !toTray,
+    hidden: startMinimised && toTray,
+  );
   runApp(
     MultiProvider(
       providers: [
         Provider<AppDatabase>.value(value: database),
         Provider<ProfileRepository>.value(value: profiles),
         Provider(create: (_) => MacroRepository(database)),
-        Provider(create: (_) => SettingsRepository(database)),
+        Provider<SettingsRepository>.value(value: settings),
+        Provider(
+          create: (context) =>
+              ProfileTransferRepository(profiles, context.read()),
+        ),
         Provider(create: (_) => DeviceCacheRepository(database)),
         Provider<DeviceRepository>(
-          create: (_) => DeviceRepository(createHidTransport()),
+          create: (_) => DeviceRepository(
+            createHidTransport(),
+            autoConnect: appSettings.autoReconnect,
+          ),
           dispose: (_, repository) => repository.dispose(),
         ),
-        ChangeNotifierProvider(create: (_) => AppearanceViewModel()),
+        ChangeNotifierProvider(
+          create: (_) => AppearanceViewModel(switch (appSettings.theme) {
+            AppTheme.dark => ThemeMode.dark,
+            AppTheme.light => ThemeMode.light,
+            AppTheme.system => ThemeMode.system,
+          }),
+        ),
         ChangeNotifierProvider(create: (_) => ToastController()),
         ChangeNotifierProvider(
           create: (context) => EditSessionViewModel(
@@ -56,6 +82,32 @@ Future<void> main() async {
             profiles: context.read(),
             settings: context.read(),
             toasts: context.read(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final shell = context.read<ShellViewModel>();
+            return ProfilesViewModel(
+              profiles: context.read(),
+              transfer: context.read(),
+              edit: context.read(),
+              toasts: context.read(),
+              confirm: shell.confirm,
+              prompt: shell.prompt,
+            );
+          },
+        ),
+        ChangeNotifierProvider(
+          lazy: false,
+          create: (context) => SettingsViewModel(
+            repository: context.read(),
+            appearance: context.read(),
+            edit: context.read(),
+            shell: context.read(),
+            device: context.read(),
+            profiles: context.read(),
+            initial: appSettings,
+            system: system,
           ),
         ),
         ChangeNotifierProvider(

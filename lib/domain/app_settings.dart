@@ -7,7 +7,7 @@ class AppSettings {
     this.autoApply = false,
     this.language = 'en',
     this.lastSection,
-    this.startWithSystem = true,
+    this.startWithSystem = false,
     this.minimiseToTray = true,
     this.autoReconnect = true,
   });

@@ -72,6 +72,7 @@ class _ConfirmDialogState extends State<_ConfirmDialog> {
     final shell = context.read<ShellViewModel>();
     return Semantics(
       scopesRoute: true,
+      explicitChildNodes: true,
       namesRoute: true,
       label: r.title,
       child: AppDialog(

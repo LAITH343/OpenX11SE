@@ -9,7 +9,7 @@ const minimumWindowSize = Size(880, 600);
 
 bool _ready = false;
 
-Future<void> initWindow() async {
+Future<void> initWindow({bool minimised = false, bool hidden = false}) async {
   await windowManager.ensureInitialized();
   _ready = true;
   final options = WindowOptions(
@@ -21,8 +21,13 @@ Future<void> initWindow() async {
     backgroundColor: nocturneDark.bg,
   );
   await windowManager.waitUntilReadyToShow(options, () async {
+    if (hidden) return;
     await windowManager.show();
-    await windowManager.focus();
+    if (minimised) {
+      await windowManager.minimize();
+    } else {
+      await windowManager.focus();
+    }
   });
 }
 

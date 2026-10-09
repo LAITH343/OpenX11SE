@@ -10,6 +10,7 @@ import 'package:openx11se/data/repositories/device_repository.dart';
 import 'package:openx11se/data/repositories/device_timing.dart';
 import 'package:openx11se/data/repositories/macro_repository.dart';
 import 'package:openx11se/data/repositories/profile_repository.dart';
+import 'package:openx11se/data/repositories/profile_transfer_repository.dart';
 import 'package:openx11se/data/repositories/settings_repository.dart';
 import 'package:openx11se/domain/polling_rate.dart';
 import 'package:openx11se/ui/buttons/buttons_view_model.dart';
@@ -17,9 +18,12 @@ import 'package:openx11se/ui/lighting/lighting_view_model.dart';
 import 'package:openx11se/ui/macros/macro_library_view_model.dart';
 import 'package:openx11se/ui/power/power_view_model.dart';
 import 'package:openx11se/ui/performance/performance_view_model.dart';
+import 'package:openx11se/ui/settings/settings_view_model.dart';
 import 'package:openx11se/ui/shell/app_section.dart';
 import 'package:openx11se/ui/shell/app_shell.dart';
+import 'package:openx11se/ui/shell/appearance_view_model.dart';
 import 'package:openx11se/ui/shell/edit_session_view_model.dart';
+import 'package:openx11se/ui/shell/profiles_view_model.dart';
 import 'package:openx11se/ui/shell/shell_view_model.dart';
 import 'package:openx11se/ui/widgets/colour_picker.dart';
 import 'package:openx11se/ui/widgets/toast_host.dart';
@@ -62,6 +66,9 @@ void main() {
     late final LightingViewModel lighting;
     late final PowerViewModel power;
     late final MacroLibraryViewModel macroLibrary;
+    late final ProfilesViewModel profilesVm;
+    late final AppearanceViewModel appearance;
+    late final SettingsViewModel settingsVm;
     await tester.runAsync(() async {
       final db = AppDatabase(sqlite3.openInMemory());
       final profiles = ProfileRepository(db);
@@ -98,6 +105,24 @@ void main() {
         toasts: toasts,
         confirm: shell.confirm,
       );
+      profilesVm = ProfilesViewModel(
+        profiles: profiles,
+        transfer: ProfileTransferRepository(profiles, macros),
+        edit: edit,
+        toasts: toasts,
+        confirm: shell.confirm,
+        prompt: shell.prompt,
+      );
+      appearance = AppearanceViewModel();
+      settingsVm = SettingsViewModel(
+        repository: settings,
+        appearance: appearance,
+        edit: edit,
+        shell: shell,
+        device: device,
+        profiles: profilesVm,
+        isWeb: false,
+      );
     });
 
     await tester.pumpWidget(
@@ -111,6 +136,8 @@ void main() {
           ChangeNotifierProvider.value(value: lighting),
           ChangeNotifierProvider.value(value: power),
           ChangeNotifierProvider.value(value: macroLibrary),
+          ChangeNotifierProvider.value(value: profilesVm),
+          ChangeNotifierProvider.value(value: settingsVm),
         ],
         child: MaterialApp(
           theme: buildNocturneTheme(nocturneDark),
@@ -192,6 +219,27 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(power.power.debounceMs, 16);
     expect(find.text('4 unsaved changes'), findsOneWidget);
+
+    shell.selectSection(AppSection.settings);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Accent colour'), findsOneWidget);
+    expect(find.text('USB cable'), findsOneWidget);
+    expect(find.text('Restore mouse to factory defaults'), findsOneWidget);
+    tester.view.physicalSize = const Size(880, 600);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Auto-apply changes'), findsOneWidget);
+    tester.view.physicalSize = const Size(1280, 800);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    shell.toggleProfileMenu();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('PROFILES ON THIS COMPUTER'), findsOneWidget);
+    expect(find.text('Restore defaults…'), findsOneWidget);
+    await tester.tap(find.text('Rename…'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Rename profile'), findsOneWidget);
+    shell.closeDialog();
+    await tester.pump(const Duration(milliseconds: 400));
     shell.selectSection(AppSection.performance);
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -216,6 +264,9 @@ void main() {
       lighting.dispose();
       power.dispose();
       macroLibrary.dispose();
+      settingsVm.dispose();
+      profilesVm.dispose();
+      appearance.dispose();
       shell.dispose();
       edit.dispose();
       await device.dispose();

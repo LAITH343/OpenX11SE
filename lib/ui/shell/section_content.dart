@@ -7,9 +7,9 @@ import '../lighting/lighting_section.dart';
 import '../macros/macros_section.dart';
 import '../performance/performance_section.dart';
 import '../power/power_section.dart';
+import '../settings/settings_section.dart';
 import '../widgets/app_button.dart';
 import '../widgets/motion.dart';
-import '../widgets/section_header.dart';
 import '../widgets/status_banner.dart';
 import 'app_section.dart';
 import 'edit_session_view_model.dart';
@@ -46,7 +46,7 @@ class SectionContent extends StatelessWidget {
                   AppSection.lighting => const LightingSection(),
                   AppSection.power => const PowerSection(),
                   AppSection.macros => const MacrosSection(),
-                  final section => SectionPlaceholder(section: section),
+                  AppSection.settings => const SettingsSection(),
                 },
               ),
             ],
@@ -55,16 +55,6 @@ class SectionContent extends StatelessWidget {
       ),
     );
   }
-}
-
-class SectionPlaceholder extends StatelessWidget {
-  const SectionPlaceholder({super.key, required this.section});
-
-  final AppSection section;
-
-  @override
-  Widget build(BuildContext context) =>
-      SectionHeader(title: section.label, description: section.description);
 }
 
 class _DisconnectedBanner extends StatelessWidget {
