@@ -267,11 +267,6 @@ ThemeData buildNocturneTheme(NocturnePalette p) {
       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       hintStyle: n.text.body.copyWith(color: n.textMuted),
       border: inputBorder,
-      enabledBorder: inputBorder,
-      focusedBorder: inputBorder,
-      errorBorder: inputBorder,
-      focusedErrorBorder: inputBorder,
-      disabledBorder: inputBorder,
     ),
     scrollbarTheme: ScrollbarThemeData(
       thickness: const WidgetStatePropertyAll(6),
