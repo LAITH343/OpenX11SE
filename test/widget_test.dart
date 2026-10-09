@@ -1,30 +1,72 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:openx11se/core/formatting/color_hex.dart';
+import 'package:openx11se/core/theme/nocturne_palette.dart';
+import 'package:openx11se/core/theme/nocturne_theme.dart';
+import 'package:openx11se/ui/shell/appearance_view_model.dart';
+import 'package:openx11se/ui/widgets/segmented_control.dart';
+import 'package:openx11se/ui/widgets/toggle.dart';
 
-import 'package:openx11se/main.dart';
+Widget _host(Widget child) => MaterialApp(
+  theme: buildNocturneTheme(nocturneDark),
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('hex colour round-trips', () {
+    expect(parseHexColor('#8b6cff'), const Color(0xFF8B6CFF));
+    expect(parseHexColor('abc'), const Color(0xFFAABBCC));
+    expect(parseHexColor('#12345'), isNull);
+    expect(formatHexColor(const Color(0xFF8B6CFF)), '#8B6CFF');
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('accent override derives ramp steps', () {
+    final vm = AppearanceViewModel()..accentOverride = stageColorDefaults[0];
+    final n = vm.darkTheme.extension<NocturneTheme>()!;
+    expect(n.accent, stageColorDefaults[0]);
+    expect(n.palette.a(800), isNot(nocturneDark.a(800)));
+    vm.accentOverride = null;
+    expect(
+      vm.darkTheme.extension<NocturneTheme>()!.accent,
+      nocturneDark.accent,
+    );
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('switch toggles', (tester) async {
+    var value = false;
+    await tester.pumpWidget(
+      _host(
+        StatefulBuilder(
+          builder: (context, setState) => AppSwitch(
+            value: value,
+            onChanged: (v) => setState(() => value = v),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(AppSwitch));
+    await tester.pumpAndSettle();
+    expect(value, isTrue);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('segmented control selects option', (tester) async {
+    var selected = 1000;
+    await tester.pumpWidget(
+      _host(
+        StatefulBuilder(
+          builder: (context, setState) => SegmentedControl<int>(
+            selected: selected,
+            onChanged: (v) => setState(() => selected = v),
+            options: const [
+              SegmentOption(value: 500, label: '500 Hz'),
+              SegmentOption(value: 1000, label: '1000 Hz'),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('500 Hz'));
+    await tester.pumpAndSettle();
+    expect(selected, 500);
   });
 }

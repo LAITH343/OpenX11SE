@@ -1,11 +1,11 @@
 {
-    "name": "openx11se",
-    "short_name": "openx11se",
+    "name": "OpenX11SE",
+    "short_name": "OpenX11SE",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#161826",
+    "theme_color": "#161826",
+    "description": "Configure the Attack Shark X11SE mouse.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
