@@ -15,21 +15,18 @@ class DeviceRepository {
     this._transport, {
     DeviceTiming Function(ConnectionType)? timing,
     this.wakeRetryInterval = const Duration(seconds: 10),
-    this.silenceTimeout = const Duration(milliseconds: 3500),
     this.awakeReportGap = const Duration(seconds: 3),
-    this.offTimeout = const Duration(seconds: 9),
+    this.offTimeout = const Duration(seconds: 7),
   }) : _timing = timing ?? DeviceTiming.forConnection;
 
   final HidTransport _transport;
   final DeviceTiming Function(ConnectionType) _timing;
   final Duration wakeRetryInterval;
-  final Duration silenceTimeout;
   final Duration awakeReportGap;
   final Duration offTimeout;
   final _clock = Stopwatch()..start();
   Duration? _lastBattery;
   Timer? _wakeRetry;
-  Timer? _silence;
   Timer? _offTimer;
   bool _awaitingWake = false;
   final _states = StreamController<DeviceState>.broadcast();
@@ -129,12 +126,19 @@ class DeviceRepository {
         rethrow;
       }
       if (generation != _generation) return;
-      _setState(off ? DeviceOff(session.device) : DeviceAsleep(session.device));
       if (session.supportsNotifications) {
         _awaitingWake = true;
-        if (!off) _watchOff();
+        if (off) {
+          _setState(DeviceOff(session.device));
+        } else if (_reportedRecently) {
+          _setState(DeviceAsleep(session.device));
+        } else {
+          _setState(DeviceConnecting(session.device));
+        }
+        _watchOff();
         return;
       }
+      _setState(DeviceAsleep(session.device));
       _wakeRetry = Timer(
         wakeRetryInterval,
         () => unawaited(_retryAsleep(session, generation)),
@@ -142,14 +146,24 @@ class DeviceRepository {
     }
   }
 
+  bool get _waitingForMouse {
+    final state = _state;
+    return state is DeviceAsleep ||
+        state is DeviceOff ||
+        (state is DeviceConnecting && _awaitingWake);
+  }
+
+  bool get _reportedRecently {
+    final last = _lastBattery;
+    return last != null && _clock.elapsed - last < offTimeout;
+  }
+
   Future<void> _retryAsleep(DeviceSession session, int generation) async {
+    final state = _state;
+    final waiting = _waitingForMouse;
     _wakeRetry?.cancel();
     _awaitingWake = false;
-    final state = _state;
-    if (generation != _generation ||
-        (state is! DeviceAsleep && state is! DeviceOff)) {
-      return;
-    }
+    if (generation != _generation || !waiting) return;
     try {
       await _loadOrWait(session, generation, off: state is DeviceOff);
     } on Object catch (e) {
@@ -175,7 +189,6 @@ class DeviceRepository {
         includesButtons: result.includesButtons,
       ),
     );
-    _watchSilence();
     _watchOff();
   }
 
@@ -206,20 +219,6 @@ class DeviceRepository {
     return session;
   }
 
-  void _watchSilence() {
-    _silence?.cancel();
-    final session = _watchedSession;
-    if (session == null) return;
-    _silence = Timer(silenceTimeout, () {
-      final state = _state;
-      if (state is DeviceReady &&
-          state.link == MouseLink.awake &&
-          _session == session) {
-        _setState(state.copyWith(link: MouseLink.asleep));
-      }
-    });
-  }
-
   void _watchOff() {
     _offTimer?.cancel();
     final session = _watchedSession;
@@ -229,8 +228,8 @@ class DeviceRepository {
       final state = _state;
       if (state is DeviceReady && !state.off) {
         _setState(state.copyWith(link: MouseLink.off));
-      } else if (state is DeviceAsleep) {
-        _setState(DeviceOff(state.device));
+      } else if (_waitingForMouse && state is! DeviceOff) {
+        _setState(DeviceOff(session.device));
       }
     });
   }
@@ -249,19 +248,20 @@ class DeviceRepository {
     final session = _session;
     final link = _linkFrom(event);
     _watchOff();
-    if (link == MouseLink.awake) _watchSilence();
     if (state is DeviceReady && link != null && link != state.link) {
       state = state.copyWith(link: link);
       _setState(state);
-    } else if (state is DeviceOff && link == MouseLink.asleep) {
-      state = DeviceAsleep(state.device);
+    } else if (_awaitingWake &&
+        ((state is DeviceOff && link == MouseLink.asleep) ||
+            (state is DeviceConnecting && link != MouseLink.awake))) {
+      state = DeviceAsleep(session!.device);
       _setState(state);
     }
     final awake = link == MouseLink.awake;
     if (awake &&
-        (state is DeviceAsleep || state is DeviceOff) &&
         session != null &&
-        (_awaitingWake || _wakeRetry?.isActive == true)) {
+        (_awaitingWake || _wakeRetry?.isActive == true) &&
+        _waitingForMouse) {
       unawaited(_retryAsleep(session, _generation));
     }
     switch (event) {
@@ -313,7 +313,6 @@ class DeviceRepository {
 
   Future<void> _closeSession() async {
     _wakeRetry?.cancel();
-    _silence?.cancel();
     _offTimer?.cancel();
     _lastBattery = null;
     _awaitingWake = false;

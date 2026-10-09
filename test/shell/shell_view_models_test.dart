@@ -164,10 +164,12 @@ void main() {
     final connection = FakeHidConnection(dongleDevice)..asleep = true;
     transport.factories['dongle'] = () => connection;
     transport.setPresent([dongleDevice]);
+    await until(() => connection.sent.length >= 5);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    connection.notify('03 07 40 01 60');
     await until(() => shell.status == ConnectionStatus.asleep);
     connection
       ..asleep = false
-      ..notify('03 07 40 01 60')
       ..notify('03 07 40 01 60');
     await until(() => shell.status == ConnectionStatus.connected);
     expect(edit.saved, defaults);
