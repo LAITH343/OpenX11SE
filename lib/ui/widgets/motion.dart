@@ -247,3 +247,73 @@ class Skeleton extends StatelessWidget {
     );
   }
 }
+
+double _wave(double t) => Curves.easeInOut.transform(1 - (t * 2 - 1).abs());
+
+class Breathe extends StatelessWidget {
+  const Breathe({super.key, required this.child, this.period});
+
+  final Widget child;
+  final Duration? period;
+
+  @override
+  Widget build(BuildContext context) => _Looping(
+    period: period ?? const Duration(milliseconds: 2400),
+    builder: (context, t) =>
+        Opacity(opacity: 0.1 + 0.9 * _wave(t), child: child),
+  );
+}
+
+class Doze extends StatelessWidget {
+  const Doze({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => _Looping(
+    period: const Duration(seconds: 4),
+    builder: (context, t) {
+      final w = _wave(t);
+      return Opacity(
+        opacity: 0.5 + 0.5 * w,
+        child: Transform.scale(scale: 0.94 + 0.06 * w, child: child),
+      );
+    },
+  );
+}
+
+class Halo extends StatelessWidget {
+  const Halo({super.key, required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.nocturne.accent;
+    return _Looping(
+      period: const Duration(seconds: 4),
+      builder: (context, t) {
+        final w = _wave(t);
+        return Opacity(
+          opacity: 0.12 + 0.38 * w,
+          child: Transform.scale(
+            scale: 0.9 + 0.22 * w,
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    accent.withValues(alpha: 0.4),
+                    accent.withValues(alpha: 0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

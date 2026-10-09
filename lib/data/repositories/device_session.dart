@@ -61,7 +61,7 @@ class DeviceWriteException implements Exception {
       '${cause == null ? '' : ' ($cause)'}';
 }
 
-typedef ApplyProgress = void Function(int done, int total);
+typedef ApplyProgress = void Function(int done, int total, int? nextReportId);
 
 class DeviceSession {
   DeviceSession(this._connection, this._timing) {
@@ -179,10 +179,11 @@ class DeviceSession {
     List<OutgoingReport> reports, {
     ApplyProgress? onProgress,
   }) => _exclusive(() async {
-    onProgress?.call(0, reports.length);
+    int? idAt(int i) => i < reports.length ? reports[i].reportId : null;
+    onProgress?.call(0, reports.length, idAt(0));
     for (var i = 0; i < reports.length; i++) {
       await _send(reports[i]);
-      onProgress?.call(i + 1, reports.length);
+      onProgress?.call(i + 1, reports.length, idAt(i + 1));
     }
   });
 

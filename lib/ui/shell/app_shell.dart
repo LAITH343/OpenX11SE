@@ -1,0 +1,156 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/theme/nocturne_theme.dart';
+import '../widgets/toast_host.dart';
+import 'app_header.dart';
+import 'device_states.dart';
+import 'dialog_layer.dart';
+import 'edit_session_view_model.dart';
+import 'nav_rail.dart';
+import 'profile_menu.dart';
+import 'section_content.dart';
+import 'shell_view_model.dart';
+import 'title_bar.dart';
+import 'window/window_controls.dart';
+
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
+
+  static const compactWidth = 1080.0;
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  final _menuLink = LayerLink();
+  String? _title;
+
+  void _syncTitle(String profileName) {
+    final title = 'OpenX11SE — $profileName';
+    if (!hasWindowChrome || title == _title) return;
+    _title = title;
+    unawaited(setWindowTitle(title));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = context.nocturne;
+    final shell = context.read<ShellViewModel>();
+    final edit = context.read<EditSessionViewModel>();
+    final profileName = context.select<ShellViewModel, String>(
+      (s) => s.profileName,
+    );
+    _syncTitle(profileName);
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyS, control: true): () =>
+            unawaited(edit.apply()),
+        const SingleActivator(LogicalKeyboardKey.keyS, meta: true): () =>
+            unawaited(edit.apply()),
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            shell.dismissTopmost(),
+      },
+      child: Focus(
+        autofocus: true,
+        child: ProfileMenuAnchor(
+          link: _menuLink,
+          child: Material(
+            color: n.bg,
+            child: Column(
+              children: [
+                if (hasWindowChrome) TitleBar(profileName: profileName),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(gradient: n.groundGlow),
+                        ),
+                      ),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final compact =
+                              constraints.maxWidth < AppShell.compactWidth;
+                          return Column(
+                            children: [
+                              const AppHeader(),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    NavRail(compact: compact),
+                                    const Expanded(child: _Main()),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      const ProfileMenuLayer(),
+                      const DialogLayer(),
+                      const _Toasts(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Main extends StatelessWidget {
+  const _Main();
+
+  @override
+  Widget build(BuildContext context) {
+    final n = context.nocturne;
+    final status = context.select<ShellViewModel, ConnectionStatus>(
+      (s) => s.status,
+    );
+    final writing = context.select<EditSessionViewModel, bool>(
+      (e) => e.writing,
+    );
+    final section = context.select<ShellViewModel, Object>((s) => s.section);
+    final body = switch (status) {
+      ConnectionStatus.none => const NoDeviceState(),
+      ConnectionStatus.asleep => const AsleepState(),
+      ConnectionStatus.loading => const LoadingState(),
+      ConnectionStatus.connected ||
+      ConnectionStatus.disconnected => SectionContent(key: ValueKey(section)),
+    };
+    return Stack(
+      children: [
+        Positioned.fill(child: body),
+        if (writing)
+          Positioned.fill(
+            child: MouseRegion(
+              cursor: SystemMouseCursors.progress,
+              child: AbsorbPointer(
+                child: ColoredBox(color: n.bg.withValues(alpha: 0.3)),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Toasts extends StatelessWidget {
+  const _Toasts();
+
+  @override
+  Widget build(BuildContext context) {
+    final toasts = context.watch<ToastController>();
+    return ToastHost(toasts: toasts.toasts, onDismiss: toasts.dismiss);
+  }
+}

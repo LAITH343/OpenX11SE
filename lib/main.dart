@@ -11,9 +11,14 @@ import 'data/repositories/macro_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'ui/shell/appearance_view_model.dart';
+import 'ui/shell/edit_session_view_model.dart';
+import 'ui/shell/shell_view_model.dart';
+import 'ui/shell/window/window_controls.dart';
+import 'ui/widgets/toast_host.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initWindow();
   final database = await openAppDatabase();
   final profiles = ProfileRepository(database);
   await profiles.ensureDefault();
@@ -30,6 +35,24 @@ Future<void> main() async {
           dispose: (_, repository) => repository.dispose(),
         ),
         ChangeNotifierProvider(create: (_) => AppearanceViewModel()),
+        ChangeNotifierProvider(create: (_) => ToastController()),
+        ChangeNotifierProvider(
+          create: (context) => EditSessionViewModel(
+            device: context.read(),
+            profiles: context.read(),
+            macros: context.read(),
+            settings: context.read(),
+            toasts: context.read(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ShellViewModel(
+            device: context.read(),
+            profiles: context.read(),
+            settings: context.read(),
+            toasts: context.read(),
+          ),
+        ),
       ],
       child: const OpenX11SeApp(),
     ),

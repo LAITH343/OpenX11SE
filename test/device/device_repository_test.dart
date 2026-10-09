@@ -130,7 +130,7 @@ void main() {
           next: defaults,
           connection: ConnectionType.wired,
         ),
-        onProgress: (done, _) => progress.add(done),
+        onProgress: (done, _, _) => progress.add(done),
       );
       expect(connection.writtenReportIds, [0x04, 0x05, 0x06, 0x08]);
       expect(progress, [0, 1, 2, 3, 4]);
