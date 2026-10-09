@@ -26,6 +26,8 @@ class DeviceRepository {
   final Duration offTimeout;
   final _clock = Stopwatch()..start();
   Duration? _lastBattery;
+  bool _applying = false;
+  bool _skipBatteryGap = false;
   Timer? _wakeRetry;
   Timer? _offTimer;
   bool _awaitingWake = false;
@@ -239,6 +241,10 @@ class DeviceRepository {
     final now = _clock.elapsed;
     final last = _lastBattery;
     _lastBattery = now;
+    if (_applying || _skipBatteryGap) {
+      if (!_applying) _skipBatteryGap = false;
+      return null;
+    }
     if (last == null || now - last >= offTimeout) return null;
     return now - last < awakeReportGap ? MouseLink.awake : MouseLink.asleep;
   }
@@ -315,6 +321,7 @@ class DeviceRepository {
     _wakeRetry?.cancel();
     _offTimer?.cancel();
     _lastBattery = null;
+    _skipBatteryGap = false;
     _awaitingWake = false;
     final session = _session;
     _session = null;
@@ -351,7 +358,14 @@ class DeviceRepository {
       restoreDefaults: restoreDefaults,
       forceButtons: !state.includesButtons,
     );
-    await session.apply(reports, onProgress: onProgress);
+    _applying = true;
+    try {
+      await session.apply(reports, onProgress: onProgress);
+    } finally {
+      _applying = false;
+      _skipBatteryGap = true;
+      _watchOff();
+    }
     final current = _state;
     if (_session == session && current is DeviceReady) {
       _setState(current.copyWith(settings: next, includesButtons: true));

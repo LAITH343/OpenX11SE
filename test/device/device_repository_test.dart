@@ -447,6 +447,32 @@ void main() {
       },
     );
 
+    test(
+      'the report gap around a write does not mark the mouse asleep',
+      () async {
+        repository = DeviceRepository(
+          transport,
+          timing: (_) => instant,
+          awakeReportGap: const Duration(milliseconds: 5),
+        );
+        repository.start();
+        transport.setPresent([dongleDevice]);
+        await waitReady(repository);
+        final connection = transport.opened.single;
+        connection.notify('03 07 40 01 60');
+        await pumpEventQueue();
+        await repository.apply(defaults.copyWith(polling: PollingRate.hz500));
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        connection.notify('03 07 40 01 60');
+        await pumpEventQueue();
+        expect((repository.state as DeviceReady).asleep, isFalse);
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        connection.notify('03 07 40 01 60');
+        await pumpEventQueue();
+        expect((repository.state as DeviceReady).asleep, isTrue);
+      },
+    );
+
     test('slow dongle reports do not wake a sleeping mouse', () async {
       final connection = FakeHidConnection(dongleDevice)..asleep = true;
       transport.factories['dongle'] = () => connection;
