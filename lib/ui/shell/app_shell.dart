@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../buttons/buttons_view_model.dart';
 import '../buttons/function_picker.dart';
+import '../macros/macro_assign_dialog.dart';
+import '../macros/macro_library_view_model.dart';
 import '../widgets/toast_host.dart';
 import 'app_header.dart';
 import 'device_states.dart';
@@ -45,6 +47,7 @@ class _AppShellState extends State<AppShell> {
     final shell = context.read<ShellViewModel>();
     final edit = context.read<EditSessionViewModel>();
     final buttons = context.read<ButtonsViewModel>();
+    final macros = context.read<MacroLibraryViewModel>();
     final profileName = context.select<ShellViewModel, String>(
       (s) => s.profileName,
     );
@@ -56,7 +59,9 @@ class _AppShellState extends State<AppShell> {
         const SingleActivator(LogicalKeyboardKey.keyS, meta: true): () =>
             unawaited(edit.apply()),
         const SingleActivator(LogicalKeyboardKey.escape): () =>
-            shell.dismissTopmost() || buttons.closePicker(),
+            shell.dismissTopmost() ||
+            buttons.closePicker() ||
+            macros.closeAssign(),
       },
       child: Focus(
         autofocus: true,
@@ -98,6 +103,7 @@ class _AppShellState extends State<AppShell> {
                       ),
                       const ProfileMenuLayer(),
                       const FunctionPickerLayer(),
+                      const MacroAssignLayer(),
                       const DialogLayer(),
                       const _Toasts(),
                     ],

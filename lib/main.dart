@@ -12,6 +12,7 @@ import 'data/repositories/profile_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'ui/buttons/buttons_view_model.dart';
 import 'ui/lighting/lighting_view_model.dart';
+import 'ui/macros/macro_library_view_model.dart';
 import 'ui/performance/performance_view_model.dart';
 import 'ui/power/power_view_model.dart';
 import 'ui/shell/appearance_view_model.dart';
@@ -73,6 +74,14 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => PowerViewModel(edit: context.read()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => MacroLibraryViewModel(
+            repository: context.read(),
+            edit: context.read(),
+            toasts: context.read(),
+            confirm: context.read<ShellViewModel>().confirm,
+          ),
         ),
       ],
       child: const OpenX11SeApp(),

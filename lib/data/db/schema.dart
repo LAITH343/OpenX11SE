@@ -11,7 +11,10 @@ abstract final class Tables {
 
 typedef Migration = void Function(CommonDatabase db);
 
-const List<Migration> migrations = [_createInitialSchema];
+const List<Migration> migrations = [
+  _createInitialSchema,
+  _allowDelayMacroEvents,
+];
 
 int get schemaVersion => migrations.length;
 
@@ -91,5 +94,23 @@ void _createInitialSchema(CommonDatabase db) {
       includes_buttons INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     ) STRICT;
+  ''');
+}
+
+void _allowDelayMacroEvents(CommonDatabase db) {
+  db.execute('''
+    CREATE TABLE macro_events_next (
+      macro_id INTEGER NOT NULL REFERENCES macros (id) ON DELETE CASCADE,
+      position INTEGER NOT NULL,
+      kind TEXT NOT NULL CHECK (kind IN ('key', 'mouse', 'delay')),
+      code INTEGER NOT NULL,
+      action TEXT NOT NULL CHECK (action IN ('press', 'release')),
+      delay_ms INTEGER NOT NULL CHECK (delay_ms >= 0),
+      PRIMARY KEY (macro_id, position)
+    ) STRICT;
+
+    INSERT INTO macro_events_next SELECT * FROM macro_events;
+    DROP TABLE macro_events;
+    ALTER TABLE macro_events_next RENAME TO macro_events;
   ''');
 }

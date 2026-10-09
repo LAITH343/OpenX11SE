@@ -55,6 +55,14 @@ const Map<int, String> _namedKeys = {
   0x63: 'Num .',
   0x64: r'\',
   0x65: 'Menu',
+  0xE0: 'Ctrl',
+  0xE1: 'Shift',
+  0xE2: 'Alt',
+  0xE3: 'Win',
+  0xE4: 'Right Ctrl',
+  0xE5: 'Right Shift',
+  0xE6: 'Right Alt',
+  0xE7: 'Right Win',
 };
 
 String hidKeyName(int usage) {
@@ -75,6 +83,8 @@ bool isModifierUsage(int usage) =>
 
 bool isAssignableKey(int usage) =>
     usage >= HidUsage.firstKey && usage <= 0xA4 && !isModifierUsage(usage);
+
+bool isMacroKey(int usage) => isModifierUsage(usage) || isAssignableKey(usage);
 
 KeyModifiers modifierForUsage(int usage) => switch (usage) {
   HidUsage.leftCtrl || HidUsage.rightCtrl => const KeyModifiers(ctrl: true),

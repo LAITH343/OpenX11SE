@@ -378,6 +378,42 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('delay rows fold into the preceding event', () {
+      final edited = [
+        const MacroEvent.delay(500),
+        events[0],
+        events[1],
+        events[2].copyWith(delayMs: 20),
+        const MacroEvent.delay(1500),
+        const MacroEvent.delay(480),
+        events[3],
+      ];
+      expect(resolveMacroEvents(edited), events);
+      expect(macroPairCount(edited), 5);
+      expect(encodeMacroBody(0x0D, edited, playback), body);
+      expect(
+        resolveMacroEvents([
+          events[0],
+          const MacroEvent.delay(macroMaxDelayMs),
+        ]).single.delayMs,
+        macroMaxDelayMs,
+      );
+      expect(
+        () => encodeMacroEvent(const MacroEvent.delay(100)),
+        throwsArgumentError,
+      );
+    });
+
+    test('delay rounding', () {
+      expect(roundMacroDelay(0), 0);
+      expect(roundMacroDelay(9), 0);
+      expect(roundMacroDelay(10), 20);
+      expect(roundMacroDelay(1987), 1980);
+      expect(roundMacroDelay(60000), macroMaxDelayMs);
+      expect(isExtendedMacroDelay(1270), isFalse);
+      expect(isExtendedMacroDelay(1280), isTrue);
+    });
   });
 
   group('Reads', () {

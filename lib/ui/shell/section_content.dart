@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_icons.dart';
 import '../buttons/buttons_section.dart';
 import '../lighting/lighting_section.dart';
+import '../macros/macros_section.dart';
 import '../performance/performance_section.dart';
 import '../power/power_section.dart';
 import '../widgets/app_button.dart';
@@ -44,6 +45,7 @@ class SectionContent extends StatelessWidget {
                   AppSection.buttons => const ButtonsSection(),
                   AppSection.lighting => const LightingSection(),
                   AppSection.power => const PowerSection(),
+                  AppSection.macros => const MacrosSection(),
                   final section => SectionPlaceholder(section: section),
                 },
               ),

@@ -117,6 +117,31 @@ void main() {
       expect(db.raw.userVersion, schemaVersion);
     });
 
+    test('upgrades macro events from the first schema', () {
+      final raw = sqlite3.openInMemory();
+      migrations.first(raw);
+      raw
+        ..userVersion = 1
+        ..execute(
+          'INSERT INTO macros (id, name, created_at, updated_at) '
+          "VALUES (1, 'Old', 0, 0)",
+        )
+        ..execute(
+          'INSERT INTO macro_events VALUES '
+          "(1, 0, 'key', 4, 'press', 20)",
+        );
+      final upgraded = AppDatabase(raw);
+      expect(raw.userVersion, schemaVersion);
+      final rows = raw.select('SELECT * FROM macro_events');
+      expect(rows.single['code'], 4);
+      raw.execute(
+        'INSERT INTO macro_events VALUES '
+        "(1, 1, 'delay', 0, 'press', 500)",
+      );
+      upgraded.raw.execute('DELETE FROM macros');
+      expect(raw.select('SELECT * FROM macro_events'), isEmpty);
+    });
+
     test('rejects a database from a newer schema', () {
       final raw = sqlite3.openInMemory()..userVersion = schemaVersion + 1;
       expect(() => AppDatabase(raw), throwsStateError);
@@ -296,6 +321,15 @@ void main() {
       expect(created.id, isNotNull);
       expect(created.copyWith(id: 0), clickMacro.copyWith(id: 0));
       expect(await macros.macros(), [created]);
+    });
+
+    test('stores delay events', () async {
+      final created = await macros.create(
+        clickMacro.copyWith(
+          events: [...clickMacro.events, const MacroEvent.delay(500)],
+        ),
+      );
+      expect((await macros.macro(created.id!))!.events.last.isDelay, isTrue);
     });
 
     test('save replaces name and events', () async {

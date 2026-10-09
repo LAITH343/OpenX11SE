@@ -6,6 +6,7 @@ import 'report_format.dart';
 
 const macroPairLimit = 50;
 const macroMaxDelayMs = 50000;
+const macroDelayStepMs = 20;
 const macroChunkCount = 3;
 
 const _shortDelayMaxMs = 1270;
@@ -15,11 +16,33 @@ const _pairOffset = 29;
 const _chunkPayload = 60;
 const _wirelessLastChunkLength = 0x0C;
 
+int roundMacroDelay(int delayMs) {
+  final steps = (delayMs / macroDelayStepMs).round();
+  return (steps * macroDelayStepMs).clamp(0, macroMaxDelayMs);
+}
+
+bool isExtendedMacroDelay(int delayMs) => delayMs > _shortDelayMaxMs;
+
+List<MacroEvent> resolveMacroEvents(Iterable<MacroEvent> events) {
+  final resolved = <MacroEvent>[];
+  for (final event in events) {
+    if (!event.isDelay) {
+      resolved.add(event);
+    } else if (resolved.isNotEmpty) {
+      final last = resolved.last;
+      resolved.last = last.copyWith(
+        delayMs: (last.delayMs + event.delayMs).clamp(0, macroMaxDelayMs),
+      );
+    }
+  }
+  return resolved;
+}
+
 int macroEventPairs(MacroEvent event) =>
-    event.delayMs > _shortDelayMaxMs ? 2 : 1;
+    isExtendedMacroDelay(event.delayMs) ? 2 : 1;
 
 int macroPairCount(Iterable<MacroEvent> events) =>
-    events.fold(0, (sum, e) => sum + macroEventPairs(e));
+    resolveMacroEvents(events).fold(0, (sum, e) => sum + macroEventPairs(e));
 
 int macroPairsLeft(Iterable<MacroEvent> events) =>
     macroPairLimit - macroPairCount(events);
@@ -28,6 +51,9 @@ bool fitsMacroCapacity(Iterable<MacroEvent> events) =>
     macroPairCount(events) <= macroPairLimit;
 
 List<int> encodeMacroEvent(MacroEvent event) {
+  if (event.isDelay) {
+    throw ArgumentError.value(event, 'event', 'Delays are not encodable');
+  }
   RangeError.checkValueInInterval(event.delayMs, 0, macroMaxDelayMs, 'delayMs');
   final flag = event.action == MacroAction.press ? 0x01 : 0x81;
   final code = event.code & 0xFF;
@@ -54,7 +80,8 @@ Uint8List encodeMacroBody(
   List<MacroEvent> events,
   MacroPlayback playback,
 ) {
-  final pairs = macroPairCount(events);
+  final resolved = resolveMacroEvents(events);
+  final pairs = macroPairCount(resolved);
   if (pairs > macroPairLimit) {
     throw ArgumentError.value(pairs, 'events', 'Exceeds $macroPairLimit pairs');
   }
@@ -70,7 +97,7 @@ Uint8List encodeMacroBody(
   );
   body[28] = pairs;
   var o = _pairOffset;
-  for (final event in events) {
+  for (final event in resolved) {
     final encoded = encodeMacroEvent(event);
     body.setRange(o, o + encoded.length, encoded);
     o += encoded.length;

@@ -261,7 +261,7 @@ void main() {
       ]);
     });
 
-    test('edited macro content is resent without a button change', () {
+    test('edited macro content is resent after the button report', () {
       final assigned = defaults.withButton(
         ButtonSlot.forward,
         const MacroButton(macroId: 7),
@@ -273,7 +273,21 @@ void main() {
         macros: {7: forwardMacro},
         changedMacroIds: {7},
       );
-      expect(ids(reports), [ReportId.macro]);
+      expect(ids(reports), [ReportId.buttons, ReportId.macro]);
+    });
+
+    test('unchanged macro is not resent', () {
+      final assigned = defaults.withButton(
+        ButtonSlot.forward,
+        const MacroButton(macroId: 7),
+      );
+      final reports = planApply(
+        previous: assigned,
+        next: assigned,
+        connection: ConnectionType.wired,
+        macros: {7: forwardMacro},
+      );
+      expect(reports, isEmpty);
     });
   });
 

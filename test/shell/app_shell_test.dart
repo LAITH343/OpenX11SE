@@ -14,6 +14,7 @@ import 'package:openx11se/data/repositories/settings_repository.dart';
 import 'package:openx11se/domain/polling_rate.dart';
 import 'package:openx11se/ui/buttons/buttons_view_model.dart';
 import 'package:openx11se/ui/lighting/lighting_view_model.dart';
+import 'package:openx11se/ui/macros/macro_library_view_model.dart';
 import 'package:openx11se/ui/power/power_view_model.dart';
 import 'package:openx11se/ui/performance/performance_view_model.dart';
 import 'package:openx11se/ui/shell/app_section.dart';
@@ -60,6 +61,7 @@ void main() {
     late final ButtonsViewModel buttons;
     late final LightingViewModel lighting;
     late final PowerViewModel power;
+    late final MacroLibraryViewModel macroLibrary;
     await tester.runAsync(() async {
       final db = AppDatabase(sqlite3.openInMemory());
       final profiles = ProfileRepository(db);
@@ -90,6 +92,12 @@ void main() {
       buttons = ButtonsViewModel(edit: edit, macros: macros);
       lighting = LightingViewModel(edit: edit);
       power = PowerViewModel(edit: edit);
+      macroLibrary = MacroLibraryViewModel(
+        repository: macros,
+        edit: edit,
+        toasts: toasts,
+        confirm: shell.confirm,
+      );
     });
 
     await tester.pumpWidget(
@@ -102,6 +110,7 @@ void main() {
           ChangeNotifierProvider.value(value: buttons),
           ChangeNotifierProvider.value(value: lighting),
           ChangeNotifierProvider.value(value: power),
+          ChangeNotifierProvider.value(value: macroLibrary),
         ],
         child: MaterialApp(
           theme: buildNocturneTheme(nocturneDark),
@@ -206,6 +215,7 @@ void main() {
       buttons.dispose();
       lighting.dispose();
       power.dispose();
+      macroLibrary.dispose();
       shell.dispose();
       edit.dispose();
       await device.dispose();

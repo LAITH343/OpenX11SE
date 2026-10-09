@@ -64,6 +64,8 @@ class EditSessionViewModel extends ChangeNotifier {
   DeviceSettings? _saved;
   DeviceSettings? _staged;
   List<SettingsSection> _changes = const [];
+  final Set<int> _changedMacroIds = {};
+  DeviceSettings? _profileSettings;
   bool _online = false;
   bool _mouseOff = false;
   ConnectionType? _connection;
@@ -80,13 +82,18 @@ class EditSessionViewModel extends ChangeNotifier {
 
   DeviceSettings? get staged => _staged;
 
-  int get pendingCount => _changes.length;
+  int get pendingCount => _changes.length + _changedMacroIds.length;
 
-  bool get hasPending => _changes.isNotEmpty;
+  bool get hasPending => _changes.isNotEmpty || _macrosPending;
 
-  Set<SettingsSection> get dirtySections => _changes.toSet();
+  Set<SettingsSection> get dirtySections => {
+    ..._changes,
+    if (_macrosPending) SettingsSection.buttons,
+  };
 
-  bool isDirty(SettingsSection section) => _changes.contains(section);
+  bool isDirty(SettingsSection section) => dirtySections.contains(section);
+
+  bool get _macrosPending => _changedMacroIds.isNotEmpty;
 
   bool get autoApply => _autoApply;
 
@@ -104,7 +111,7 @@ class EditSessionViewModel extends ChangeNotifier {
 
   bool get canApply => hasPending && !_writing && _online && !_mouseOff;
 
-  bool get canDiscard => hasPending && !_writing;
+  bool get canDiscard => _changes.isNotEmpty && !_writing;
 
   void stage(DeviceSettings Function(DeviceSettings current) change) {
     final current = _staged;
@@ -114,15 +121,29 @@ class EditSessionViewModel extends ChangeNotifier {
     _staged = next;
     _recompute();
     notifyListeners();
-    if (_autoApply) {
-      _autoApplyTimer?.cancel();
-      _autoApplyTimer = Timer(autoApplyDelay, () => unawaited(apply()));
-    }
+    _scheduleAutoApply();
+  }
+
+  void markMacroChanged(int macroId) {
+    final staged = _staged;
+    if (staged == null) return;
+    final assigned = staged.buttons.any(
+      (b) => b is MacroButton && b.macroId == macroId,
+    );
+    if (!assigned || !_changedMacroIds.add(macroId)) return;
+    notifyListeners();
+    _scheduleAutoApply();
+  }
+
+  void _scheduleAutoApply() {
+    if (!_autoApply) return;
+    _autoApplyTimer?.cancel();
+    _autoApplyTimer = Timer(autoApplyDelay, () => unawaited(apply()));
   }
 
   void discard() {
     final saved = _saved;
-    if (saved == null || _writing || !hasPending) return;
+    if (saved == null || _writing || !canDiscard) return;
     _staged = saved;
     _writeError = null;
     _recompute();
@@ -154,7 +175,8 @@ class EditSessionViewModel extends ChangeNotifier {
     final previous = _saved;
     final next = _staged;
     if (!canApply || previous == null || next == null) return;
-    final changed = _changes.toSet();
+    final changed = dirtySections;
+    final changedMacros = {..._changedMacroIds};
     _writing = true;
     _progress = 0.06;
     _writeError = null;
@@ -165,6 +187,7 @@ class EditSessionViewModel extends ChangeNotifier {
         next,
         previous: previous,
         macros: await _macrosFor(next),
+        changedMacroIds: changedMacros,
         onProgress: (done, total, nextReportId) {
           if (_disposed) return;
           _progress = total == 0 ? 1 : (done / total).clamp(0.06, 1.0);
@@ -176,6 +199,7 @@ class EditSessionViewModel extends ChangeNotifier {
       );
       if (_disposed) return;
       _saved = next;
+      _changedMacroIds.removeAll(changedMacros);
       _recompute();
       _toasts.show(
         'Settings saved to mouse',
@@ -275,7 +299,7 @@ class EditSessionViewModel extends ChangeNotifier {
     switch (state) {
       case DeviceReady(:final settings, :final info):
         _connection = info.connection;
-        _rebase(settings, reconnected: !wasOnline);
+        _rebase(_linkMacros(settings), reconnected: !wasOnline);
       case DeviceConnecting(:final device) ||
           DeviceAsleep(:final device) ||
           DeviceOff(:final device) ||
@@ -311,6 +335,33 @@ class EditSessionViewModel extends ChangeNotifier {
 
   void _onProfile(Profile profile) {
     _profileId = profile.id;
+    _profileSettings = profile.settings;
+    final saved = _saved;
+    final staged = _staged;
+    if (saved == null || staged == null) return;
+    final linked = _linkMacros(saved);
+    if (linked == saved) return;
+    _saved = linked;
+    _staged = staged == saved ? linked : _linkMacros(staged);
+    _recompute();
+    notifyListeners();
+  }
+
+  DeviceSettings _linkMacros(DeviceSettings settings) {
+    final links = _profileSettings?.buttons;
+    if (links == null) return settings;
+    var linked = settings;
+    for (var slot = 0; slot < settings.buttons.length; slot++) {
+      final button = settings.buttons[slot];
+      final link = links[slot];
+      if (button is MacroButton &&
+          button.macroId == null &&
+          link is MacroButton &&
+          link.macroId != null) {
+        linked = linked.withButton(slot, link);
+      }
+    }
+    return linked;
   }
 
   void _onSettings(AppSettings settings) {

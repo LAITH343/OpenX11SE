@@ -1,6 +1,6 @@
 import 'list_equality.dart';
 
-enum MacroEventKind { key, mouse }
+enum MacroEventKind { key, mouse, delay }
 
 enum MacroAction { press, release }
 
@@ -16,10 +16,17 @@ class MacroEvent {
     required this.delayMs,
   });
 
+  const MacroEvent.delay(this.delayMs)
+    : kind = MacroEventKind.delay,
+      code = 0,
+      action = MacroAction.press;
+
   final MacroEventKind kind;
   final int code;
   final MacroAction action;
   final int delayMs;
+
+  bool get isDelay => kind == MacroEventKind.delay;
 
   MacroEvent copyWith({
     MacroEventKind? kind,

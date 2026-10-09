@@ -35,6 +35,20 @@ List<OutgoingReport> planApply({
   bool forceButtons = false,
 }) {
   final base = restoreDefaults ? null : previous;
+  final uploads = [
+    for (var slot = 0; slot < next.buttons.length; slot++)
+      if (_macroUpload(slot, base, next, macros, changedMacroIds)
+          case final upload?)
+        OutgoingReport(
+          ReportId.macro,
+          encodeMacroReports(
+            macroSlotId(slot),
+            upload.$1.events,
+            upload.$2,
+            connection: connection,
+          ),
+        ),
+  ];
   return [
     if (restoreDefaults)
       OutgoingReport(ReportId.restoreDefaults, [
@@ -52,20 +66,10 @@ List<OutgoingReport> planApply({
       OutgoingReport(ReportId.polling, [encodePollingReport(next.polling)]),
     if (base == null ||
         forceButtons ||
+        uploads.isNotEmpty ||
         !_sameButtons(base.buttons, next.buttons))
       OutgoingReport(ReportId.buttons, [encodeButtonReport(next.buttons)]),
-    for (var slot = 0; slot < next.buttons.length; slot++)
-      if (_macroUpload(slot, base, next, macros, changedMacroIds)
-          case final upload?)
-        OutgoingReport(
-          ReportId.macro,
-          encodeMacroReports(
-            macroSlotId(slot),
-            upload.$1.events,
-            upload.$2,
-            connection: connection,
-          ),
-        ),
+    ...uploads,
   ];
 }
 
