@@ -14,10 +14,13 @@ class DeviceRepository {
   DeviceRepository(
     this._transport, {
     DeviceTiming Function(ConnectionType)? timing,
+    this.wakeRetryInterval = const Duration(seconds: 2),
   }) : _timing = timing ?? DeviceTiming.forConnection;
 
   final HidTransport _transport;
   final DeviceTiming Function(ConnectionType) _timing;
+  final Duration wakeRetryInterval;
+  Timer? _wakeRetry;
   final _states = StreamController<DeviceState>.broadcast();
   final _stageChanges = StreamController<int>.broadcast();
   DeviceState _state = const DeviceAbsent();
@@ -95,9 +98,36 @@ class DeviceRepository {
       _session = session;
       _notifications = session.notifications.listen(_onNotification);
       unawaited(session.closed.then((_) => _onSessionClosed(session)));
-      await _load(session, generation);
+      await _loadOrWait(session, generation);
     } on Object catch (e) {
       if (generation == _generation) _setState(DeviceFailed(device, e));
+    }
+  }
+
+  Future<void> _loadOrWait(DeviceSession session, int generation) async {
+    _wakeRetry?.cancel();
+    try {
+      await _load(session, generation);
+    } on DeviceReadException catch (e) {
+      if (!e.noResponse || session.connection != ConnectionType.dongle) {
+        rethrow;
+      }
+      if (generation != _generation) return;
+      _setState(DeviceAsleep(session.device));
+      _wakeRetry = Timer(
+        wakeRetryInterval,
+        () => unawaited(_retryAsleep(session, generation)),
+      );
+    }
+  }
+
+  Future<void> _retryAsleep(DeviceSession session, int generation) async {
+    _wakeRetry?.cancel();
+    if (generation != _generation || _state is! DeviceAsleep) return;
+    try {
+      await _loadOrWait(session, generation);
+    } on Object catch (e) {
+      if (generation == _generation) _setState(DeviceFailed(session.device, e));
     }
   }
 
@@ -127,7 +157,7 @@ class DeviceRepository {
     final generation = _generation;
     _setState(DeviceConnecting(session.device));
     try {
-      await _load(session, generation);
+      await _loadOrWait(session, generation);
     } on Object catch (e) {
       if (generation == _generation) {
         _setState(DeviceFailed(session.device, e));
@@ -137,6 +167,12 @@ class DeviceRepository {
 
   void _onNotification(DeviceNotification event) {
     final state = _state;
+    final session = _session;
+    if (state is DeviceAsleep &&
+        session != null &&
+        _wakeRetry?.isActive == true) {
+      unawaited(_retryAsleep(session, _generation));
+    }
     switch (event) {
       case BatteryNotification():
         _battery = event;
@@ -184,6 +220,7 @@ class DeviceRepository {
   }
 
   Future<void> _closeSession() async {
+    _wakeRetry?.cancel();
     final session = _session;
     _session = null;
     await _notifications?.cancel();

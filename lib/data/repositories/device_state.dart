@@ -22,6 +22,15 @@ final class DeviceConnecting extends DeviceState {
   String toString() => 'DeviceConnecting($device)';
 }
 
+final class DeviceAsleep extends DeviceState {
+  const DeviceAsleep(this.device);
+
+  final HidDeviceInfo device;
+
+  @override
+  String toString() => 'DeviceAsleep($device)';
+}
+
 final class DeviceReady extends DeviceState {
   const DeviceReady({
     required this.device,

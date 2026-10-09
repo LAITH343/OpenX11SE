@@ -26,11 +26,17 @@ class DeviceReadResult {
 }
 
 class DeviceReadException implements Exception {
-  const DeviceReadException(this.reportId, this.message, {this.cause});
+  const DeviceReadException(
+    this.reportId,
+    this.message, {
+    this.cause,
+    this.noResponse = false,
+  });
 
   final int reportId;
   final String message;
   final Object? cause;
+  final bool noResponse;
 
   bool get disconnected =>
       cause is HidException && (cause! as HidException).disconnected;
@@ -87,24 +93,24 @@ class DeviceSession {
     return result;
   }
 
-  Future<int> readVersion() => _exclusive(() async {
-    final bytes = await _read(
+  Future<int> readVersion() => _exclusive(
+    () => _read(
       versionReadRequest(),
       ReportId.version,
       ReportLength.version,
-    );
-    return _decode(ReportId.version, () => decodeVersion(bytes));
-  });
+      decodeVersion,
+    ),
+  );
 
   Future<DeviceReadResult> readSettings(int version) => _exclusive(() async {
     if (!usesIndividualReads(version)) {
-      final bytes = await _read(
-        snapshotReadRequest(),
-        ReportId.snapshot,
-        ReportLength.snapshot,
-      );
       return DeviceReadResult(
-        settings: _decode(ReportId.snapshot, () => decodeSnapshot(bytes)),
+        settings: await _read(
+          snapshotReadRequest(),
+          ReportId.snapshot,
+          ReportLength.snapshot,
+          decodeSnapshot,
+        ),
         includesButtons: true,
       );
     }
@@ -112,53 +118,61 @@ class DeviceSession {
       pollingReadRequest(),
       ReportId.polling,
       ReportLength.polling,
+      decodePollingReport,
     );
     final lighting = await _read(
       lightingReadRequest(),
       ReportId.lighting,
       ReportLength.lighting,
+      decodeLightingReport,
     );
-    final dpi = await _read(dpiReadRequest(), ReportId.dpi, ReportLength.dpi);
-    final dpiValues = _decode(ReportId.dpi, () => decodeDpiReport(dpi));
-    final lightingValues = _decode(
-      ReportId.lighting,
-      () => decodeLightingReport(lighting),
+    final dpi = await _read(
+      dpiReadRequest(),
+      ReportId.dpi,
+      ReportLength.dpi,
+      decodeDpiReport,
     );
     return DeviceReadResult(
       settings: DeviceSettings(
-        dpi: dpiValues.dpi,
-        sensor: dpiValues.sensor,
-        lighting: lightingValues.lighting,
-        power: lightingValues.power,
-        polling: _decode(ReportId.polling, () => decodePollingReport(polling)),
+        dpi: dpi.dpi,
+        sensor: dpi.sensor,
+        lighting: lighting.lighting,
+        power: lighting.power,
+        polling: polling,
         buttons: factoryButtonAssignments,
       ),
       includesButtons: false,
     );
   });
 
-  T _decode<T>(int reportId, T Function() decode) {
-    try {
-      return decode();
-    } on ProtocolException catch (e) {
-      throw DeviceReadException(reportId, e.message, cause: e);
-    }
-  }
-
-  Future<Uint8List> _read(Uint8List request, int reportId, int length) async {
+  Future<T> _read<T>(
+    Uint8List request,
+    int reportId,
+    int length,
+    T Function(List<int> bytes) decode,
+  ) async {
+    ProtocolException? invalid;
     try {
       for (var attempt = 0; attempt < _timing.readAttempts; attempt++) {
         await _connection.setFeature(request);
         for (var poll = 0; poll < _timing.busyPolls; poll++) {
           await _delay(_timing.readDelay);
           final bytes = await _connection.getFeature(reportId, length);
-          if (isResponseFor(bytes, reportId, length)) return bytes;
+          if (!isResponseFor(bytes, reportId, length)) continue;
+          try {
+            return decode(bytes);
+          } on ProtocolException catch (e) {
+            invalid = e;
+          }
         }
       }
     } on HidException catch (e) {
       throw DeviceReadException(reportId, e.message, cause: e);
     }
-    throw DeviceReadException(reportId, 'No valid response');
+    if (invalid != null) {
+      throw DeviceReadException(reportId, invalid.message, cause: invalid);
+    }
+    throw DeviceReadException(reportId, 'No valid response', noResponse: true);
   }
 
   Future<void> apply(

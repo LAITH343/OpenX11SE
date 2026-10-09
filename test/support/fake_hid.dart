@@ -41,6 +41,9 @@ class FakeHidConnection implements HidConnection {
   final bool supportsNotifications;
   bool autoAck;
   int busyResponses;
+  bool asleep = false;
+  final List<Uint8List> staleResponses = [];
+  Uint8List? _lastRequest;
   final Map<int, Uint8List> responses;
   final List<Uint8List> sent = [];
   final _notifications = StreamController<Uint8List>.broadcast(sync: true);
@@ -75,6 +78,7 @@ class FakeHidConnection implements HidConnection {
     }
     sent.add(Uint8List.fromList(report));
     if (report[0] == ReportId.readRequest) {
+      _lastRequest = Uint8List.fromList(report);
       _pendingBusy = busyResponses;
     } else if (autoAck && report[0] != ReportId.restoreDefaults) {
       scheduleMicrotask(
@@ -85,6 +89,12 @@ class FakeHidConnection implements HidConnection {
 
   @override
   Future<Uint8List> getFeature(int reportId, int length) async {
+    if (asleep) {
+      final echo = Uint8List(length);
+      echo.setAll(0, _lastRequest ?? const []);
+      return echo;
+    }
+    if (staleResponses.isNotEmpty) return staleResponses.removeAt(0);
     if (_pendingBusy > 0) {
       _pendingBusy--;
       return hex('A0 01 00 00 00 00 00 00', length);

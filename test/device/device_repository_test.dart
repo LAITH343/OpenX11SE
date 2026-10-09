@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openx11se/data/protocol/report_format.dart';
 import 'package:openx11se/data/repositories/apply_plan.dart';
@@ -91,6 +93,31 @@ void main() {
       expect(
         DeviceSession(connection, instant).readVersion(),
         throwsA(isA<DeviceReadException>()),
+      );
+    });
+
+    test('skips a stale reply with a matching header', () async {
+      final connection = FakeHidConnection(wiredDevice);
+      final stale = Uint8List.fromList(defaultSnapshot)..[2] = 0x00;
+      connection.staleResponses.add(stale);
+      final result = await DeviceSession(
+        connection,
+        instant,
+      ).readSettings(0x0105);
+      expect(result.settings, defaults);
+    });
+
+    test('flags an echoed request as no response', () async {
+      final connection = FakeHidConnection(dongleDevice)..asleep = true;
+      expect(
+        DeviceSession(connection, instant).readVersion(),
+        throwsA(
+          isA<DeviceReadException>().having(
+            (e) => e.noResponse,
+            'noResponse',
+            isTrue,
+          ),
+        ),
       );
     });
 
@@ -256,7 +283,11 @@ void main() {
 
     setUp(() {
       transport = FakeHidTransport();
-      repository = DeviceRepository(transport, timing: (_) => instant);
+      repository = DeviceRepository(
+        transport,
+        timing: (_) => instant,
+        wakeRetryInterval: const Duration(milliseconds: 10),
+      );
     });
 
     tearDown(() => repository.dispose());
@@ -317,6 +348,34 @@ void main() {
       await repository.apply(next);
       expect(transport.opened.single.writtenReportIds, [ReportId.polling]);
       expect((repository.state as DeviceReady).settings, next);
+    });
+
+    test('a sleeping mouse behind the dongle is read once it wakes', () async {
+      final connection = FakeHidConnection(dongleDevice)..asleep = true;
+      transport.factories['dongle'] = () => connection;
+      repository.start();
+      transport.setPresent([dongleDevice]);
+      await repository.states.firstWhere((s) => s is DeviceAsleep);
+      connection.asleep = false;
+      final ready = await waitReady(repository);
+      expect(ready.settings, defaults);
+    });
+
+    test('a battery report wakes the read immediately', () async {
+      final connection = FakeHidConnection(dongleDevice)..asleep = true;
+      transport.factories['dongle'] = () => connection;
+      repository = DeviceRepository(
+        transport,
+        timing: (_) => instant,
+        wakeRetryInterval: const Duration(hours: 1),
+      );
+      repository.start();
+      transport.setPresent([dongleDevice]);
+      await repository.states.firstWhere((s) => s is DeviceAsleep);
+      connection.asleep = false;
+      connection.notify('03 07 40 01 63');
+      final ready = await waitReady(repository);
+      expect(ready.info.batteryPercent, 0x63);
     });
 
     test('read failure surfaces as a failed state', () async {

@@ -103,6 +103,7 @@ class _DeviceDebugBody extends StatelessWidget {
   static String _stateLabel(DeviceState state) => switch (state) {
     DeviceAbsent() => 'No device',
     DeviceConnecting() => 'Reading',
+    DeviceAsleep() => 'Asleep',
     DeviceReady(:final info) => info.connection.name,
     DeviceFailed() => 'Error',
   };
