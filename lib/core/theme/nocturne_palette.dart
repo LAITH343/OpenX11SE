@@ -228,3 +228,11 @@ const List<Color> spectrumStops = [
 ];
 
 const Color windowCloseHover = Color(0xFFC4453A);
+
+const List<Color> deviceBodyGradient = [
+  Color(0xFF3F424D),
+  Color(0xFF292B31),
+  Color(0xFF1D1F2A),
+];
+
+const Color deviceBodySheen = Color(0xFFE9E9ED);

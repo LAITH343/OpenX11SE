@@ -12,7 +12,9 @@ import 'package:openx11se/data/repositories/macro_repository.dart';
 import 'package:openx11se/data/repositories/profile_repository.dart';
 import 'package:openx11se/data/repositories/settings_repository.dart';
 import 'package:openx11se/domain/polling_rate.dart';
+import 'package:openx11se/ui/buttons/buttons_view_model.dart';
 import 'package:openx11se/ui/performance/performance_view_model.dart';
+import 'package:openx11se/ui/shell/app_section.dart';
 import 'package:openx11se/ui/shell/app_shell.dart';
 import 'package:openx11se/ui/shell/edit_session_view_model.dart';
 import 'package:openx11se/ui/shell/shell_view_model.dart';
@@ -52,18 +54,20 @@ void main() {
     late final EditSessionViewModel edit;
     late final ShellViewModel shell;
     late final PerformanceViewModel performance;
+    late final ButtonsViewModel buttons;
     await tester.runAsync(() async {
       final db = AppDatabase(sqlite3.openInMemory());
       final profiles = ProfileRepository(db);
       await profiles.ensureDefault();
       final settings = SettingsRepository(db);
+      final macros = MacroRepository(db);
       transport = FakeHidTransport();
       device = DeviceRepository(transport, timing: (_) => instant);
       toasts = ToastController();
       edit = EditSessionViewModel(
         device: device,
         profiles: profiles,
-        macros: MacroRepository(db),
+        macros: macros,
         settings: settings,
         toasts: toasts,
       );
@@ -78,6 +82,7 @@ void main() {
         device: device,
         toasts: toasts,
       );
+      buttons = ButtonsViewModel(edit: edit, macros: macros);
     });
 
     await tester.pumpWidget(
@@ -87,6 +92,7 @@ void main() {
           ChangeNotifierProvider.value(value: edit),
           ChangeNotifierProvider.value(value: shell),
           ChangeNotifierProvider.value(value: performance),
+          ChangeNotifierProvider.value(value: buttons),
         ],
         child: MaterialApp(
           theme: buildNocturneTheme(nocturneDark),
@@ -127,6 +133,25 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('1 unsaved change'), findsOneWidget);
 
+    shell.selectSection(AppSection.buttons);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Middle · wheel click'), findsOneWidget);
+    expect(find.text('Forward · side front'), findsOneWidget);
+    await tester.tap(find.text('Forward · side front'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Assign a function to'), findsOneWidget);
+    await tester.tap(find.text('Shortcuts'));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.tap(find.text('Copy'));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.tap(find.text('Assign'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Assign a function to'), findsNothing);
+    expect(find.text('Copy'), findsOneWidget);
+    expect(find.text('2 unsaved changes'), findsOneWidget);
+    shell.selectSection(AppSection.performance);
+    await tester.pump(const Duration(milliseconds: 400));
+
     await tester.runAsync(() async {
       transport.setPresent(const []);
       for (
@@ -139,11 +164,12 @@ void main() {
     });
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Disconnected'), findsOneWidget);
-    expect(find.text('1 unsaved change'), findsOneWidget);
+    expect(find.text('2 unsaved changes'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.runAsync(() async {
       performance.dispose();
+      buttons.dispose();
       shell.dispose();
       edit.dispose();
       await device.dispose();

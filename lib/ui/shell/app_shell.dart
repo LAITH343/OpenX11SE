@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/nocturne_theme.dart';
+import '../buttons/buttons_view_model.dart';
+import '../buttons/function_picker.dart';
 import '../widgets/toast_host.dart';
 import 'app_header.dart';
 import 'device_states.dart';
@@ -42,6 +44,7 @@ class _AppShellState extends State<AppShell> {
     final n = context.nocturne;
     final shell = context.read<ShellViewModel>();
     final edit = context.read<EditSessionViewModel>();
+    final buttons = context.read<ButtonsViewModel>();
     final profileName = context.select<ShellViewModel, String>(
       (s) => s.profileName,
     );
@@ -53,7 +56,7 @@ class _AppShellState extends State<AppShell> {
         const SingleActivator(LogicalKeyboardKey.keyS, meta: true): () =>
             unawaited(edit.apply()),
         const SingleActivator(LogicalKeyboardKey.escape): () =>
-            shell.dismissTopmost(),
+            shell.dismissTopmost() || buttons.closePicker(),
       },
       child: Focus(
         autofocus: true,
@@ -94,6 +97,7 @@ class _AppShellState extends State<AppShell> {
                         },
                       ),
                       const ProfileMenuLayer(),
+                      const FunctionPickerLayer(),
                       const DialogLayer(),
                       const _Toasts(),
                     ],
