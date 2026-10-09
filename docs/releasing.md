@@ -14,13 +14,14 @@ The tag must be `v<version>`, matching `version` in `pubspec.yaml` (build number
 2. Tag and push:
 
    ```powershell
-   git tag -a v1.1.0 -m "Release notes shown in the update dialog"
+   git tag v1.1.0
    git push origin master v1.1.0
    ```
 
 3. `.github/workflows/release.yml` runs the tests, builds the installer with Inno Setup, writes the
-   checksum and publishes the GitHub release with both assets, using the tag message as notes. Edit them on
-   GitHub afterwards if needed; they are shown in the update dialog.
+   checksum and publishes the GitHub release with both assets. The release notes list every commit message
+   since the previous `v*.*.*` tag (all commits for the first release); they are shown in the update dialog
+   and can be edited on GitHub afterwards.
 
 ## Manual
 

@@ -13,6 +13,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -45,5 +47,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $previous = git describe --tags --abbrev=0 --match 'v*.*.*' '${{ github.ref_name }}^' 2>$null
+          $range = if ($LASTEXITCODE -eq 0 -and $previous) { "$previous..${{ github.ref_name }}" } else { '${{ github.ref_name }}' }
+          $notes = git log $range --no-merges --pretty=format:'- %s'
+          if (-not $notes) { $notes = '- Maintenance release' }
+          $notes | Out-File -FilePath release-notes.md -Encoding utf8
           $installer = "build/installer/OpenX11SE-Setup-$env:VERSION.exe"
-          gh release create '${{ github.ref_name }}' $installer "$installer.sha256" --title "OpenX11SE $env:VERSION" --notes-from-tag
+          gh release create '${{ github.ref_name }}' $installer "$installer.sha256" --title "OpenX11SE $env:VERSION" --notes-file release-notes.md
