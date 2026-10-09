@@ -27,7 +27,7 @@ class SectionContent extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 20, 28, 48),
       child: Align(
-        alignment: Alignment.topLeft,
+        alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1004),
           child: Column(
