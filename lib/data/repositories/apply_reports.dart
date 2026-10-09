@@ -25,7 +25,7 @@ class OutgoingReport {
       'OutgoingReport(0x${reportId.toRadixString(16)}, ${chunks.length})';
 }
 
-List<OutgoingReport> planApply({
+List<OutgoingReport> buildApplyReports({
   required DeviceSettings? previous,
   required DeviceSettings next,
   required ConnectionType connection,

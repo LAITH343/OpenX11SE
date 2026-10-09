@@ -26,7 +26,7 @@ class WindowsHidTransport implements HidTransport {
   bool _disposed = false;
 
   @override
-  bool get isSupported => true;
+  HidAvailability get availability => HidAvailability.available;
 
   @override
   bool get requiresUserGrant => false;

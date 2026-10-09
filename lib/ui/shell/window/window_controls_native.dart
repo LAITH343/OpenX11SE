@@ -2,10 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../core/theme/nocturne_palette.dart';
+import '../minimum_size_viewport.dart';
 
 const bool hasWindowChrome = true;
-
-const minimumWindowSize = Size(880, 600);
 
 bool _ready = false;
 
@@ -14,7 +13,7 @@ Future<void> initWindow({bool minimised = false, bool hidden = false}) async {
   _ready = true;
   final options = WindowOptions(
     size: const Size(1280, 800),
-    minimumSize: minimumWindowSize,
+    minimumSize: minimumAppSize,
     center: true,
     title: 'OpenX11SE',
     titleBarStyle: TitleBarStyle.hidden,

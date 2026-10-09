@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../core/formatting/number_format.dart';
 import '../../core/theme/app_icons.dart';
+import '../../data/hid/hid_transport.dart';
 import '../../data/repositories/device_repository.dart';
 import '../../data/repositories/device_state.dart';
 import '../../data/repositories/profile_repository.dart';
@@ -53,6 +54,7 @@ class ShellViewModel extends ChangeNotifier {
   List<Profile> _profiles = const [];
   bool _profileMenuOpen = false;
   DialogRequest? _dialog;
+  String? _connectFailure;
   bool _sleepChecking = false;
   bool _checkingOff = false;
   bool _disposed = false;
@@ -91,9 +93,23 @@ class ShellViewModel extends ChangeNotifier {
 
   bool get needsUserGrant => _device.requiresUserGrant;
 
-  String? get failureText => _state is DeviceFailed
-      ? 'The mouse was found but its settings could not be read.'
-      : null;
+  HidAvailability get availability => _device.availability;
+
+  bool get isHidAvailable => availability == HidAvailability.available;
+
+  String? get failureText {
+    if (_connectFailure != null) return _connectFailure;
+    final state = _state;
+    if (state is! DeviceFailed) return null;
+    if (state.error is DeviceOpenException) {
+      return needsUserGrant
+          ? 'The mouse could not be opened. Close other tabs or apps using '
+                'it, then try again.'
+          : 'The mouse could not be opened. Close other mouse software, then '
+                'click Check again.';
+    }
+    return 'The mouse was found but its settings could not be read.';
+  }
 
   ConnectionType? get connection => _connection;
 
@@ -197,7 +213,18 @@ class ShellViewModel extends ChangeNotifier {
 
   Future<void> checkAgain() => _guard(_device.rescan);
 
-  Future<void> connect() => _guard(_device.requestDevice);
+  Future<void> connect() async {
+    _connectFailure = null;
+    try {
+      await _device.requestDevice();
+    } on Object {
+      if (_disposed) return;
+      _connectFailure =
+          'The browser did not allow access to the mouse. '
+          'Click Connect device and choose X11SE.';
+      notifyListeners();
+    }
+  }
 
   Future<void> reconnect() => _guard(_device.refresh);
 
@@ -249,6 +276,7 @@ class ShellViewModel extends ChangeNotifier {
   void _onState(DeviceState state) {
     final previous = _state;
     _state = state;
+    if (state is! DeviceAbsent) _connectFailure = null;
     switch (state) {
       case DeviceReady(:final info, :final settings):
         _announceReady(previous, state);

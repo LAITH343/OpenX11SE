@@ -6,7 +6,7 @@ class UnsupportedHidTransport implements HidTransport {
   const UnsupportedHidTransport();
 
   @override
-  bool get isSupported => false;
+  HidAvailability get availability => HidAvailability.unsupported;
 
   @override
   bool get requiresUserGrant => false;

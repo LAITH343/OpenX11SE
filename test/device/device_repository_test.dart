@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:openx11se/data/hid/hid_transport.dart';
 import 'package:openx11se/data/protocol/report_format.dart';
-import 'package:openx11se/data/repositories/apply_plan.dart';
+import 'package:openx11se/data/repositories/apply_reports.dart';
 import 'package:openx11se/data/repositories/device_repository.dart';
 import 'package:openx11se/data/repositories/device_session.dart';
 import 'package:openx11se/data/repositories/device_state.dart';
@@ -125,7 +126,7 @@ void main() {
       final connection = FakeHidConnection(wiredDevice);
       final progress = <int>[];
       await DeviceSession(connection, instant).apply(
-        planApply(
+        buildApplyReports(
           previous: null,
           next: defaults,
           connection: ConnectionType.wired,
@@ -182,13 +183,13 @@ void main() {
     });
   });
 
-  group('planApply', () {
+  group('buildApplyReports', () {
     List<int> ids(List<OutgoingReport> reports) =>
         reports.map((r) => r.reportId).toList();
 
     test('sends nothing when unchanged', () {
       expect(
-        planApply(
+        buildApplyReports(
           previous: defaults,
           next: defaults,
           connection: ConnectionType.wired,
@@ -199,7 +200,7 @@ void main() {
 
     test('sends only changed sections', () {
       final next = defaults.copyWith(polling: PollingRate.hz500);
-      final reports = planApply(
+      final reports = buildApplyReports(
         previous: defaults,
         next: next,
         connection: ConnectionType.wired,
@@ -214,7 +215,7 @@ void main() {
       );
       expect(
         ids(
-          planApply(
+          buildApplyReports(
             previous: defaults,
             next: next,
             connection: ConnectionType.wired,
@@ -225,7 +226,7 @@ void main() {
     });
 
     test('restore sends 0x0C then every section in order', () {
-      final reports = planApply(
+      final reports = buildApplyReports(
         previous: defaults,
         next: defaults,
         connection: ConnectionType.wired,
@@ -245,7 +246,7 @@ void main() {
         ButtonSlot.forward,
         const MacroButton(macroId: 7, playback: playback),
       );
-      final reports = planApply(
+      final reports = buildApplyReports(
         previous: defaults,
         next: next,
         connection: ConnectionType.dongle,
@@ -266,7 +267,7 @@ void main() {
         ButtonSlot.forward,
         const MacroButton(macroId: 7),
       );
-      final reports = planApply(
+      final reports = buildApplyReports(
         previous: assigned,
         next: assigned,
         connection: ConnectionType.wired,
@@ -281,7 +282,7 @@ void main() {
         ButtonSlot.forward,
         const MacroButton(macroId: 7),
       );
-      final reports = planApply(
+      final reports = buildApplyReports(
         previous: assigned,
         next: assigned,
         connection: ConnectionType.wired,
@@ -313,6 +314,22 @@ void main() {
       expect(ready.info.connection, ConnectionType.wired);
       expect(ready.info.firmwareVersion, 0x0105);
       expect(ready.settings, defaults);
+    });
+
+    test('reports an open failure as a typed failed state', () async {
+      transport.openError = const HidException('Access denied');
+      repository.start();
+      transport.setPresent([wiredDevice]);
+      final failed =
+          await repository.states.firstWhere((s) => s is DeviceFailed)
+              as DeviceFailed;
+      expect(failed.error, isA<DeviceOpenException>());
+    });
+
+    test('rescan ignores enumeration errors', () async {
+      transport.enumerateError = const HidException('Enumeration failed');
+      await repository.rescan();
+      expect(repository.state, isA<DeviceAbsent>());
     });
 
     test('prefers the cable over the dongle', () async {

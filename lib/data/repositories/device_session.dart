@@ -12,7 +12,7 @@ import '../protocol/notifications.dart';
 import '../protocol/polling_report.dart';
 import '../protocol/report_format.dart';
 import '../protocol/snapshot.dart';
-import 'apply_plan.dart';
+import 'apply_reports.dart';
 import 'device_timing.dart';
 
 class DeviceReadResult {
@@ -71,7 +71,7 @@ typedef ApplyProgress = void Function(int done, int total, int? nextReportId);
 
 class DeviceSession {
   DeviceSession(this._connection, this._timing) {
-    _subscription = _connection.notifications.listen(_onRaw);
+    _subscription = _connection.notifications.listen(_onRaw, onError: (_) {});
   }
 
   final HidConnection _connection;
@@ -239,9 +239,14 @@ class DeviceSession {
       d > Duration.zero ? Future<void>.delayed(d) : Future<void>.value();
 
   Future<void> close() async {
-    await _subscription.cancel();
-    await _connection.close();
-    await _events.close();
+    try {
+      await _subscription.cancel();
+      await _connection.close();
+    } on Object {
+      return;
+    } finally {
+      await _events.close();
+    }
   }
 }
 

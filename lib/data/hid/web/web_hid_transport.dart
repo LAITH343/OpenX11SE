@@ -23,7 +23,11 @@ class WebHidTransport implements HidTransport {
   JSFunction? _onConnectionChange;
 
   @override
-  bool get isSupported => _hid != null;
+  HidAvailability get availability => _hid != null
+      ? HidAvailability.available
+      : web.window.isSecureContext
+      ? HidAvailability.unsupported
+      : HidAvailability.insecureContext;
 
   @override
   bool get requiresUserGrant => true;

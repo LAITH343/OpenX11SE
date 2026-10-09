@@ -1,4 +1,4 @@
-import 'package:sqlite3/common.dart';
+import 'platform_database.dart';
 
-Future<CommonDatabase> openPlatformDatabase(String name) =>
+Future<PlatformDatabase> openPlatformDatabase(String name) =>
     throw UnsupportedError('No database is available on this platform');

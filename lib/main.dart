@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
+import 'core/theme/app_icons.dart';
 import 'data/db/app_database.dart';
 import 'data/db/database_opener.dart';
 import 'data/hid/hid_transport_factory.dart';
@@ -23,12 +25,20 @@ import 'ui/shell/appearance_view_model.dart';
 import 'ui/shell/edit_session_view_model.dart';
 import 'ui/shell/profiles_view_model.dart';
 import 'ui/shell/shell_view_model.dart';
+import 'ui/shell/startup_failure.dart';
 import 'ui/shell/window/window_controls.dart';
 import 'ui/widgets/toast_host.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  final database = await openAppDatabase();
+  _reportUncaughtErrors();
+  final AppDatabase database;
+  try {
+    database = await openAppDatabase();
+  } on Object catch (error) {
+    runApp(StartupFailureApp(error: error));
+    return;
+  }
   final profiles = ProfileRepository(database);
   await profiles.ensureDefault();
   final settings = SettingsRepository(database);
@@ -66,7 +76,20 @@ Future<void> main(List<String> args) async {
             AppTheme.system => ThemeMode.system,
           }),
         ),
-        ChangeNotifierProvider(create: (_) => ToastController()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final toasts = ToastController();
+            if (!database.persistent) {
+              toasts.show(
+                'This browser blocks storage — changes here won’t be kept '
+                'after a reload',
+                kind: ToastKind.warning,
+                icon: AppIconsFill.warning,
+              );
+            }
+            return toasts;
+          },
+        ),
         ChangeNotifierProvider(
           create: (context) => EditSessionViewModel(
             device: context.read(),
@@ -139,4 +162,11 @@ Future<void> main(List<String> args) async {
       child: const OpenX11SeApp(),
     ),
   );
+}
+
+void _reportUncaughtErrors() {
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('Uncaught: $error\n$stack');
+    return true;
+  };
 }

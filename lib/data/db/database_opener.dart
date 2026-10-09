@@ -6,5 +6,7 @@ import 'database_opener_unsupported.dart'
 
 const databaseName = 'openx11se';
 
-Future<AppDatabase> openAppDatabase() async =>
-    AppDatabase(await platform.openPlatformDatabase(databaseName));
+Future<AppDatabase> openAppDatabase() async {
+  final opened = await platform.openPlatformDatabase(databaseName);
+  return AppDatabase(opened.database, persistent: opened.persistent);
+}

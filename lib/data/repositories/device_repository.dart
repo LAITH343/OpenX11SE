@@ -5,10 +5,19 @@ import '../../domain/device_settings.dart';
 import '../../domain/macro.dart';
 import '../hid/hid_transport.dart';
 import '../protocol/notifications.dart';
-import 'apply_plan.dart';
+import 'apply_reports.dart';
 import 'device_session.dart';
 import 'device_state.dart';
 import 'device_timing.dart';
+
+class DeviceOpenException implements Exception {
+  const DeviceOpenException(this.cause);
+
+  final Object cause;
+
+  @override
+  String toString() => 'DeviceOpenException: $cause';
+}
 
 class DeviceRepository {
   DeviceRepository(
@@ -44,7 +53,9 @@ class DeviceRepository {
   int _generation = 0;
   bool _disposed = false;
 
-  bool get isSupported => _transport.isSupported;
+  HidAvailability get availability => _transport.availability;
+
+  bool get isSupported => availability == HidAvailability.available;
 
   bool get requiresUserGrant => _transport.requiresUserGrant;
 
@@ -63,7 +74,15 @@ class DeviceRepository {
     _onDevices(devices);
   }
 
-  Future<void> rescan() async => _onDevices(await _transport.enumerate());
+  Future<void> rescan() async {
+    final List<HidDeviceInfo> devices;
+    try {
+      devices = await _transport.enumerate();
+    } on Object {
+      return;
+    }
+    _onDevices(devices);
+  }
 
   Future<void> requestDevice() async =>
       _onDevices(await _transport.requestDevice());
@@ -106,14 +125,22 @@ class DeviceRepository {
     _battery = null;
     _setState(DeviceConnecting(device));
     try {
-      final connection = await _transport.open(device);
+      final HidConnection connection;
+      try {
+        connection = await _transport.open(device);
+      } on Object catch (e) {
+        throw DeviceOpenException(e);
+      }
       if (generation != _generation) {
         await connection.close();
         return;
       }
       final session = DeviceSession(connection, _timing(device.connection));
       _session = session;
-      _notifications = session.notifications.listen(_onNotification);
+      _notifications = session.notifications.listen(
+        _onNotification,
+        onError: (_) {},
+      );
       unawaited(session.closed.then((_) => _onSessionClosed(session)));
       await _loadOrWait(session, generation);
     } on Object catch (e) {
@@ -357,7 +384,7 @@ class DeviceRepository {
         state.off ? DeviceWriteFailure.off : DeviceWriteFailure.asleep,
       );
     }
-    final reports = planApply(
+    final reports = buildApplyReports(
       previous: sendAll ? null : previous ?? state.settings,
       next: next,
       connection: session.connection,

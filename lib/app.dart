@@ -5,6 +5,7 @@ import 'ui/debug/device_debug_screen.dart';
 import 'ui/gallery/widget_gallery.dart';
 import 'ui/shell/app_shell.dart';
 import 'ui/shell/appearance_view_model.dart';
+import 'ui/shell/minimum_size_viewport.dart';
 
 const bool showWidgetGallery = bool.fromEnvironment('WIDGET_GALLERY');
 
@@ -22,6 +23,8 @@ class OpenX11SeApp extends StatelessWidget {
       theme: appearance.lightTheme,
       darkTheme: appearance.darkTheme,
       themeMode: appearance.themeMode,
+      builder: (context, child) =>
+          MinimumSizeViewport(child: child ?? const SizedBox.shrink()),
       home: showDeviceDiagnostics
           ? const DeviceDebugScreen()
           : showWidgetGallery

@@ -5,13 +5,14 @@ import 'package:sqlite3/common.dart';
 import 'schema.dart';
 
 class AppDatabase {
-  AppDatabase(this.raw, {DateTime Function()? clock})
+  AppDatabase(this.raw, {DateTime Function()? clock, this.persistent = true})
     : _clock = clock ?? DateTime.now {
     raw.execute('PRAGMA foreign_keys = ON');
     migrateSchema(raw);
   }
 
   final CommonDatabase raw;
+  final bool persistent;
   final DateTime Function() _clock;
   final _changes = StreamController<Set<String>>.broadcast(sync: true);
 

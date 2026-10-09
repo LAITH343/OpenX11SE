@@ -117,9 +117,11 @@ class FakeHidTransport implements HidTransport {
   final Map<String, FakeHidConnection Function()> factories = {};
   final List<FakeHidConnection> opened = [];
   List<HidDeviceInfo> present = const [];
+  Object? openError;
+  Object? enumerateError;
 
   @override
-  bool get isSupported => true;
+  HidAvailability get availability => HidAvailability.available;
 
   @override
   bool get requiresUserGrant => false;
@@ -133,13 +135,19 @@ class FakeHidTransport implements HidTransport {
   }
 
   @override
-  Future<List<HidDeviceInfo>> enumerate() async => present;
+  Future<List<HidDeviceInfo>> enumerate() async {
+    final error = enumerateError;
+    if (error != null) throw error;
+    return present;
+  }
 
   @override
   Future<List<HidDeviceInfo>> requestDevice() async => present;
 
   @override
   Future<HidConnection> open(HidDeviceInfo device) async {
+    final error = openError;
+    if (error != null) throw error;
     final connection =
         factories[device.id]?.call() ?? FakeHidConnection(device);
     opened.add(connection);

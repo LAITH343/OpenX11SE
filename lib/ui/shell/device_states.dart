@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
+import '../../data/hid/hid_transport.dart';
 import '../widgets/app_button.dart';
 import '../widgets/motion.dart';
 import 'shell_view_model.dart';
@@ -91,6 +92,9 @@ class NoDeviceState extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = context.nocturne;
     final shell = context.watch<ShellViewModel>();
+    if (shell.availability != HidAvailability.available) {
+      return _UnsupportedState(availability: shell.availability);
+    }
     final web = shell.needsUserGrant;
     final muted = n.text.small.copyWith(color: n.textSecondary);
     return _StatePage(
@@ -167,6 +171,55 @@ class NoDeviceState extends StatelessWidget {
               ),
             ],
           ),
+      ],
+    );
+  }
+}
+
+class _UnsupportedState extends StatelessWidget {
+  const _UnsupportedState({required this.availability});
+
+  final HidAvailability availability;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = context.nocturne;
+    final insecure = availability == HidAvailability.insecureContext;
+    return _StatePage(
+      children: [
+        _DeviceDisc(
+          child: Icon(
+            insecure ? AppIcons.lockSimple : AppIcons.browser,
+            size: 30,
+            color: n.palette.warning,
+          ),
+        ),
+        _Heading(
+          title: insecure
+              ? 'This page needs a secure connection'
+              : 'This browser can’t reach the mouse',
+          body: insecure
+              ? 'The browser only allows access to USB devices on pages served '
+                    'over HTTPS or from localhost.'
+              : 'OpenX11SE talks to the mouse through WebHID, which is '
+                    'available in desktop Chrome, Edge and Opera.',
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 10,
+          children: insecure
+              ? const [
+                  _Step(1, 'Open this page with an https:// address.'),
+                  _Step(2, 'Or run it locally from http://localhost.'),
+                ]
+              : const [
+                  _Step(1, 'Open this page in Chrome, Edge or Opera.'),
+                  _Step(
+                    2,
+                    'Use a desktop computer — phones are not supported.',
+                  ),
+                ],
+        ),
       ],
     );
   }
