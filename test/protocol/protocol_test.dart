@@ -489,6 +489,20 @@ void main() {
           chargeState: ChargeState.charging,
         ),
       );
+      expect(
+        decodeNotification(hex('03 07 40 03 64')),
+        const BatteryNotification(
+          percent: 100,
+          chargeState: ChargeState.charging,
+        ),
+      );
+      expect(
+        decodeNotification(hex('03 07 40 02 64')),
+        const BatteryNotification(
+          percent: 100,
+          chargeState: ChargeState.charged,
+        ),
+      );
     });
 
     test('ack and DPI stage', () {

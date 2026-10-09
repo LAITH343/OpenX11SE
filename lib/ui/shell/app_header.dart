@@ -421,7 +421,7 @@ class _Battery extends StatelessWidget {
     final p = n.palette;
     final charging =
         charge == ChargeState.charging || charge == ChargeState.charged;
-    final full = charge == ChargeState.charged || (charging && percent >= 100);
+    final full = charge == ChargeState.charged;
     final icon = full
         ? AppIcons.batteryFull
         : charging
