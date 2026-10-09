@@ -175,8 +175,9 @@ class EditSessionViewModel extends ChangeNotifier {
     } on DeviceWriteException catch (e) {
       if (_disposed) return;
       final asleep =
-          e.failure == DeviceWriteFailure.noAcknowledgement &&
-          _connection == ConnectionType.dongle;
+          e.failure == DeviceWriteFailure.asleep ||
+          (e.failure == DeviceWriteFailure.noAcknowledgement &&
+              _connection == ConnectionType.dongle);
       _writeError = WriteError(
         label: _labelFor(e.reportId, changed),
         asleep: asleep,

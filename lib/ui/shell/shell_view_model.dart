@@ -74,7 +74,11 @@ class ShellViewModel extends ChangeNotifier {
   bool get isReconnecting =>
       status == ConnectionStatus.disconnected && _state is! DeviceAbsent;
 
-  bool get deviceAsleep => _state is DeviceAsleep;
+  bool get deviceAsleep => switch (_state) {
+    DeviceAsleep() => true,
+    DeviceReady(:final asleep) => asleep,
+    _ => false,
+  };
 
   bool get needsUserGrant => _device.requiresUserGrant;
 
@@ -233,7 +237,7 @@ class ShellViewModel extends ChangeNotifier {
     _state = state;
     switch (state) {
       case DeviceReady(:final info, :final settings):
-        _announceReady(previous, info);
+        _announceReady(previous, state);
         _hadSettings = true;
         _info = info;
         _connection = info.connection;
@@ -256,7 +260,17 @@ class ShellViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _announceReady(DeviceState previous, DeviceInfo info) {
+  void _announceReady(DeviceState previous, DeviceReady ready) {
+    final info = ready.info;
+    if (previous is DeviceReady && previous.asleep != ready.asleep) {
+      _toasts.show(
+        ready.asleep
+            ? 'X11SE went to sleep — move it to wake'
+            : 'X11SE is awake',
+        kind: ready.asleep ? ToastKind.info : ToastKind.success,
+        icon: ready.asleep ? AppIconsFill.moon : AppIconsFill.sun,
+      );
+    }
     if (previous is! DeviceReady) {
       if (!_hadSettings) {
         _toasts.show(

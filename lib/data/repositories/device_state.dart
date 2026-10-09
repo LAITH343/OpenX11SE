@@ -37,26 +37,30 @@ final class DeviceReady extends DeviceState {
     required this.info,
     required this.settings,
     required this.includesButtons,
+    this.asleep = false,
   });
 
   final HidDeviceInfo device;
   final DeviceInfo info;
   final DeviceSettings settings;
   final bool includesButtons;
+  final bool asleep;
 
   DeviceReady copyWith({
     DeviceInfo? info,
     DeviceSettings? settings,
     bool? includesButtons,
+    bool? asleep,
   }) => DeviceReady(
     device: device,
     info: info ?? this.info,
     settings: settings ?? this.settings,
     includesButtons: includesButtons ?? this.includesButtons,
+    asleep: asleep ?? this.asleep,
   );
 
   @override
-  String toString() => 'DeviceReady($info)';
+  String toString() => 'DeviceReady($info${asleep ? ', asleep' : ''})';
 }
 
 final class DeviceFailed extends DeviceState {

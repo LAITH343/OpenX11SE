@@ -15,12 +15,19 @@ class DeviceRepository {
     this._transport, {
     DeviceTiming Function(ConnectionType)? timing,
     this.wakeRetryInterval = const Duration(seconds: 10),
+    this.silenceTimeout = const Duration(milliseconds: 3500),
+    this.awakeReportGap = const Duration(seconds: 3),
   }) : _timing = timing ?? DeviceTiming.forConnection;
 
   final HidTransport _transport;
   final DeviceTiming Function(ConnectionType) _timing;
   final Duration wakeRetryInterval;
+  final Duration silenceTimeout;
+  final Duration awakeReportGap;
+  final _clock = Stopwatch()..start();
+  Duration? _lastBattery;
   Timer? _wakeRetry;
+  Timer? _silence;
   bool _awaitingWake = false;
   final _states = StreamController<DeviceState>.broadcast();
   final _stageChanges = StreamController<int>.broadcast();
@@ -156,6 +163,7 @@ class DeviceRepository {
         includesButtons: result.includesButtons,
       ),
     );
+    _watchSilence();
   }
 
   Future<void> refresh() async {
@@ -172,10 +180,43 @@ class DeviceRepository {
     }
   }
 
-  void _onNotification(DeviceNotification event) {
-    final state = _state;
+  void _watchSilence() {
+    _silence?.cancel();
     final session = _session;
-    if (state is DeviceAsleep &&
+    if (session == null ||
+        session.connection != ConnectionType.dongle ||
+        !session.supportsNotifications) {
+      return;
+    }
+    _silence = Timer(silenceTimeout, () {
+      final state = _state;
+      if (state is DeviceReady && !state.asleep && _session == session) {
+        _setState(state.copyWith(asleep: true));
+      }
+    });
+  }
+
+  bool _showsAwake(DeviceNotification event) {
+    if (event is! BatteryNotification) return true;
+    final now = _clock.elapsed;
+    final last = _lastBattery;
+    _lastBattery = now;
+    return last != null && now - last < awakeReportGap;
+  }
+
+  void _onNotification(DeviceNotification event) {
+    var state = _state;
+    final session = _session;
+    final awake = _showsAwake(event);
+    if (state is DeviceReady && awake) {
+      _watchSilence();
+      if (state.asleep) {
+        state = state.copyWith(asleep: false);
+        _setState(state);
+      }
+    }
+    if (awake &&
+        state is DeviceAsleep &&
         session != null &&
         (_awaitingWake || _wakeRetry?.isActive == true)) {
       unawaited(_retryAsleep(session, _generation));
@@ -229,6 +270,8 @@ class DeviceRepository {
 
   Future<void> _closeSession() async {
     _wakeRetry?.cancel();
+    _silence?.cancel();
+    _lastBattery = null;
     _awaitingWake = false;
     final session = _session;
     _session = null;
@@ -249,6 +292,9 @@ class DeviceRepository {
     final state = _state;
     if (session == null || state is! DeviceReady) {
       throw const DeviceWriteException(0, DeviceWriteFailure.disconnected);
+    }
+    if (state.asleep) {
+      throw const DeviceWriteException(0, DeviceWriteFailure.asleep);
     }
     final reports = planApply(
       previous: previous ?? state.settings,

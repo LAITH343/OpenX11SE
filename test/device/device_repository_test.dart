@@ -391,9 +391,83 @@ void main() {
       transport.setPresent([dongleDevice]);
       await repository.states.firstWhere((s) => s is DeviceAsleep);
       connection.asleep = false;
-      connection.notify('03 07 40 01 63');
+      connection
+        ..notify('03 07 40 01 63')
+        ..notify('03 07 40 01 63');
       final ready = await waitReady(repository);
       expect(ready.info.batteryPercent, 0x63);
+    });
+
+    test(
+      'silence over the dongle marks the mouse asleep until it reports',
+      () async {
+        repository = DeviceRepository(
+          transport,
+          timing: (_) => instant,
+          silenceTimeout: const Duration(milliseconds: 30),
+        );
+        repository.start();
+        transport.setPresent([dongleDevice]);
+        await waitReady(repository);
+        final asleep = await repository.states.firstWhere(
+          (s) => s is DeviceReady && s.asleep,
+        );
+        expect((asleep as DeviceReady).settings, defaults);
+        final connection = transport.opened.single;
+        final sent = connection.sent.length;
+        await expectLater(
+          repository.apply(defaults.copyWith(polling: PollingRate.hz500)),
+          throwsA(
+            isA<DeviceWriteException>().having(
+              (e) => e.failure,
+              'failure',
+              DeviceWriteFailure.asleep,
+            ),
+          ),
+        );
+        expect(connection.sent.length, sent);
+        connection
+          ..notify('03 07 40 01 60')
+          ..notify('03 07 40 01 60');
+        await pumpEventQueue();
+        final awake = repository.state as DeviceReady;
+        expect(awake.asleep, isFalse);
+        expect(awake.info.batteryPercent, 0x60);
+      },
+    );
+
+    test('slow dongle reports do not wake a sleeping mouse', () async {
+      final connection = FakeHidConnection(dongleDevice)..asleep = true;
+      transport.factories['dongle'] = () => connection;
+      repository = DeviceRepository(
+        transport,
+        timing: (_) => instant,
+        wakeRetryInterval: const Duration(hours: 1),
+        awakeReportGap: const Duration(milliseconds: 5),
+      );
+      repository.start();
+      transport.setPresent([dongleDevice]);
+      await repository.states.firstWhere((s) => s is DeviceAsleep);
+      final sent = connection.sent.length;
+      for (var i = 0; i < 3; i++) {
+        connection.notify('03 07 40 01 60');
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+      }
+      expect(connection.sent.length, sent);
+      expect(repository.state, isA<DeviceAsleep>());
+    });
+
+    test('the cable never reports a sleeping mouse', () async {
+      repository = DeviceRepository(
+        transport,
+        timing: (_) => instant,
+        silenceTimeout: const Duration(milliseconds: 10),
+      );
+      repository.start();
+      transport.setPresent([wiredDevice]);
+      await waitReady(repository);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect((repository.state as DeviceReady).asleep, isFalse);
     });
 
     test('read failure surfaces as a failed state', () async {
