@@ -14,6 +14,7 @@ import 'package:openx11se/data/repositories/settings_repository.dart';
 import 'package:openx11se/domain/polling_rate.dart';
 import 'package:openx11se/ui/buttons/buttons_view_model.dart';
 import 'package:openx11se/ui/lighting/lighting_view_model.dart';
+import 'package:openx11se/ui/power/power_view_model.dart';
 import 'package:openx11se/ui/performance/performance_view_model.dart';
 import 'package:openx11se/ui/shell/app_section.dart';
 import 'package:openx11se/ui/shell/app_shell.dart';
@@ -58,6 +59,7 @@ void main() {
     late final PerformanceViewModel performance;
     late final ButtonsViewModel buttons;
     late final LightingViewModel lighting;
+    late final PowerViewModel power;
     await tester.runAsync(() async {
       final db = AppDatabase(sqlite3.openInMemory());
       final profiles = ProfileRepository(db);
@@ -87,6 +89,7 @@ void main() {
       );
       buttons = ButtonsViewModel(edit: edit, macros: macros);
       lighting = LightingViewModel(edit: edit);
+      power = PowerViewModel(edit: edit);
     });
 
     await tester.pumpWidget(
@@ -98,6 +101,7 @@ void main() {
           ChangeNotifierProvider.value(value: performance),
           ChangeNotifierProvider.value(value: buttons),
           ChangeNotifierProvider.value(value: lighting),
+          ChangeNotifierProvider.value(value: power),
         ],
         child: MaterialApp(
           theme: buildNocturneTheme(nocturneDark),
@@ -170,6 +174,15 @@ void main() {
     expect(find.text('Live preview · Static'), findsOneWidget);
     tester.view.physicalSize = const Size(1280, 800);
     await tester.pump(const Duration(milliseconds: 400));
+
+    shell.selectSection(AppSection.power);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Sleep timer'), findsOneWidget);
+    expect(find.text('LED off · deep sleep'), findsOneWidget);
+    await tester.tap(find.text('16 ms · Worn switches'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(power.power.debounceMs, 16);
+    expect(find.text('4 unsaved changes'), findsOneWidget);
     shell.selectSection(AppSection.performance);
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -185,13 +198,14 @@ void main() {
     });
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Disconnected'), findsOneWidget);
-    expect(find.text('3 unsaved changes'), findsOneWidget);
+    expect(find.text('4 unsaved changes'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.runAsync(() async {
       performance.dispose();
       buttons.dispose();
       lighting.dispose();
+      power.dispose();
       shell.dispose();
       edit.dispose();
       await device.dispose();

@@ -13,6 +13,7 @@ import 'data/repositories/settings_repository.dart';
 import 'ui/buttons/buttons_view_model.dart';
 import 'ui/lighting/lighting_view_model.dart';
 import 'ui/performance/performance_view_model.dart';
+import 'ui/power/power_view_model.dart';
 import 'ui/shell/appearance_view_model.dart';
 import 'ui/shell/edit_session_view_model.dart';
 import 'ui/shell/shell_view_model.dart';
@@ -69,6 +70,9 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => LightingViewModel(edit: context.read()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => PowerViewModel(edit: context.read()),
         ),
       ],
       child: const OpenX11SeApp(),
