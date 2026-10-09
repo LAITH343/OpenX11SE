@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' hide TextInput;
 import 'package:provider/provider.dart';
@@ -14,6 +12,7 @@ import '../shell/app_section.dart';
 import '../shell/shell_view_model.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_slider.dart';
+import '../widgets/auto_grid.dart';
 import '../widgets/colour_picker.dart';
 import '../widgets/pressable.dart';
 import '../widgets/section_header.dart';
@@ -59,7 +58,7 @@ class PerformanceSection extends StatelessWidget {
         if (vm.hasSettings) ...[
           const _StageGrid(),
           const _StageEditor(),
-          const _AutoGrid(
+          const AutoGrid(
             minItemWidth: 380,
             spacing: 12,
             stretch: true,
@@ -71,59 +70,6 @@ class PerformanceSection extends StatelessWidget {
   }
 }
 
-class _AutoGrid extends StatelessWidget {
-  const _AutoGrid({
-    required this.minItemWidth,
-    required this.spacing,
-    required this.children,
-    this.runSpacing,
-    this.stretch = false,
-    this.fill = false,
-  });
-
-  final double minItemWidth;
-  final double spacing;
-  final double? runSpacing;
-  final bool stretch;
-  final bool fill;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, c) {
-      var columns = math.max(
-        1,
-        ((c.maxWidth + spacing) / (minItemWidth + spacing)).floor(),
-      );
-      if (!fill) columns = math.min(columns, children.length);
-      final rows = <Widget>[];
-      for (var i = 0; i < children.length; i += columns) {
-        final cells = <Widget>[
-          for (var k = 0; k < columns; k++)
-            Expanded(
-              child: i + k < children.length
-                  ? children[i + k]
-                  : const SizedBox.shrink(),
-            ),
-        ];
-        final row = Row(
-          crossAxisAlignment: stretch
-              ? CrossAxisAlignment.stretch
-              : CrossAxisAlignment.start,
-          spacing: spacing,
-          children: cells,
-        );
-        rows.add(stretch ? IntrinsicHeight(child: row) : row);
-      }
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: runSpacing ?? spacing,
-        children: rows,
-      );
-    },
-  );
-}
-
 class _StageGrid extends StatelessWidget {
   const _StageGrid();
 
@@ -132,7 +78,7 @@ class _StageGrid extends StatelessWidget {
     final vm = context.watch<PerformanceViewModel>();
     return Semantics(
       label: 'DPI stages',
-      child: _AutoGrid(
+      child: AutoGrid(
         minItemWidth: 124,
         spacing: 8,
         fill: true,
@@ -395,7 +341,7 @@ class _StageEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const SurfaceCard(
     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-    child: _AutoGrid(
+    child: AutoGrid(
       minItemWidth: 300,
       spacing: 32,
       runSpacing: 20,

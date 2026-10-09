@@ -11,6 +11,7 @@ import 'data/repositories/macro_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'ui/buttons/buttons_view_model.dart';
+import 'ui/lighting/lighting_view_model.dart';
 import 'ui/performance/performance_view_model.dart';
 import 'ui/shell/appearance_view_model.dart';
 import 'ui/shell/edit_session_view_model.dart';
@@ -65,6 +66,9 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (context) =>
               ButtonsViewModel(edit: context.read(), macros: context.read()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => LightingViewModel(edit: context.read()),
         ),
       ],
       child: const OpenX11SeApp(),

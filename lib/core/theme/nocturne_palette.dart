@@ -236,3 +236,5 @@ const List<Color> deviceBodyGradient = [
 ];
 
 const Color deviceBodySheen = Color(0xFFE9E9ED);
+
+const Color ledCycleBase = Color(0xFFFF4545);

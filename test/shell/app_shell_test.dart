@@ -13,11 +13,13 @@ import 'package:openx11se/data/repositories/profile_repository.dart';
 import 'package:openx11se/data/repositories/settings_repository.dart';
 import 'package:openx11se/domain/polling_rate.dart';
 import 'package:openx11se/ui/buttons/buttons_view_model.dart';
+import 'package:openx11se/ui/lighting/lighting_view_model.dart';
 import 'package:openx11se/ui/performance/performance_view_model.dart';
 import 'package:openx11se/ui/shell/app_section.dart';
 import 'package:openx11se/ui/shell/app_shell.dart';
 import 'package:openx11se/ui/shell/edit_session_view_model.dart';
 import 'package:openx11se/ui/shell/shell_view_model.dart';
+import 'package:openx11se/ui/widgets/colour_picker.dart';
 import 'package:openx11se/ui/widgets/toast_host.dart';
 import 'package:provider/provider.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -55,6 +57,7 @@ void main() {
     late final ShellViewModel shell;
     late final PerformanceViewModel performance;
     late final ButtonsViewModel buttons;
+    late final LightingViewModel lighting;
     await tester.runAsync(() async {
       final db = AppDatabase(sqlite3.openInMemory());
       final profiles = ProfileRepository(db);
@@ -83,6 +86,7 @@ void main() {
         toasts: toasts,
       );
       buttons = ButtonsViewModel(edit: edit, macros: macros);
+      lighting = LightingViewModel(edit: edit);
     });
 
     await tester.pumpWidget(
@@ -93,6 +97,7 @@ void main() {
           ChangeNotifierProvider.value(value: shell),
           ChangeNotifierProvider.value(value: performance),
           ChangeNotifierProvider.value(value: buttons),
+          ChangeNotifierProvider.value(value: lighting),
         ],
         child: MaterialApp(
           theme: buildNocturneTheme(nocturneDark),
@@ -149,6 +154,22 @@ void main() {
     expect(find.text('Assign a function to'), findsNothing);
     expect(find.text('Copy'), findsOneWidget);
     expect(find.text('2 unsaved changes'), findsOneWidget);
+
+    shell.selectSection(AppSection.lighting);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Breathing DPI'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Live preview · Breathing DPI'), findsOneWidget);
+    expect(find.text('Edit stage colours'), findsOneWidget);
+    await tester.tap(find.text('Static'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(ColourPicker), findsOneWidget);
+    expect(find.text('3 unsaved changes'), findsOneWidget);
+    tester.view.physicalSize = const Size(880, 600);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Live preview · Static'), findsOneWidget);
+    tester.view.physicalSize = const Size(1280, 800);
+    await tester.pump(const Duration(milliseconds: 400));
     shell.selectSection(AppSection.performance);
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -164,12 +185,13 @@ void main() {
     });
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Disconnected'), findsOneWidget);
-    expect(find.text('2 unsaved changes'), findsOneWidget);
+    expect(find.text('3 unsaved changes'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.runAsync(() async {
       performance.dispose();
       buttons.dispose();
+      lighting.dispose();
       shell.dispose();
       edit.dispose();
       await device.dispose();

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_icons.dart';
 import '../buttons/buttons_section.dart';
+import '../lighting/lighting_section.dart';
 import '../performance/performance_section.dart';
 import '../widgets/app_button.dart';
 import '../widgets/motion.dart';
@@ -40,6 +41,7 @@ class SectionContent extends StatelessWidget {
                 child: switch (shell.section) {
                   AppSection.performance => const PerformanceSection(),
                   AppSection.buttons => const ButtonsSection(),
+                  AppSection.lighting => const LightingSection(),
                   final section => SectionPlaceholder(section: section),
                 },
               ),
