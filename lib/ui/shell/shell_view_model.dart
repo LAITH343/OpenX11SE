@@ -108,6 +108,9 @@ class ShellViewModel extends ChangeNotifier {
           : 'The mouse could not be opened. Close other mouse software, then '
                 'click Check again.';
     }
+    if (kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
+      return 'Not supported in the browser on Windows — use the desktop app';
+    }
     return 'The mouse was found but its settings could not be read.';
   }
 
