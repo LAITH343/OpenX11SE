@@ -84,7 +84,7 @@ class _NavItem extends StatelessWidget {
           duration: n.motion.fast,
           height: 38,
           decoration: BoxDecoration(
-            color: active ? n.palette.a(900) : Colors.transparent,
+            color: active ? n.selectedSurface : Colors.transparent,
             borderRadius: n.radius.mdAll,
           ),
           child: Stack(
@@ -100,7 +100,7 @@ class _NavItem extends StatelessWidget {
                     child: Container(
                       width: 2,
                       decoration: BoxDecoration(
-                        color: n.accent,
+                        color: n.selectedBorder,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -119,7 +119,7 @@ class _NavItem extends StatelessWidget {
                         Icon(
                           section.icon,
                           size: 18,
-                          color: active ? n.accent : fg,
+                          color: fg,
                         ),
                         if (!iconOnly) ...[
                           const SizedBox(width: 11),

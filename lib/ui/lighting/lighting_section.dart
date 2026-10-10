@@ -312,13 +312,13 @@ class _ModeTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? Color.lerp(p.surface, p.accent, .09)
+              ? n.selectedSurface
               : states.contains(WidgetState.hovered)
               ? Color.lerp(p.surface, p.text, .05)
               : p.surface,
           borderRadius: n.radius.mdAll,
           border: Border.all(
-            color: selected ? p.accent : p.accent.withValues(alpha: 0),
+            color: selected ? n.selectedBorder : Colors.transparent,
           ),
           boxShadow: p.shadowSm,
         ),

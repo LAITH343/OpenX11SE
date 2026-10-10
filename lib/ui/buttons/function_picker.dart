@@ -260,13 +260,13 @@ class _GroupTile extends StatelessWidget {
           height: 34,
           padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-            color: active ? p.a(900) : Colors.transparent,
+            color: active ? n.selectedSurface : Colors.transparent,
             borderRadius: n.radius.mdAll,
           ),
           child: Row(
             spacing: 10,
             children: [
-              Icon(group.icon, size: 16, color: active ? p.accent : fg),
+              Icon(group.icon, size: 16, color: fg),
               Expanded(
                 child: Text(
                   group.label,
@@ -380,7 +380,6 @@ class _FunctionTileState extends State<_FunctionTile> {
   @override
   Widget build(BuildContext context) {
     final n = context.nocturne;
-    final p = n.palette;
     final selected = context.select<FunctionPickerViewModel, bool>(
       (vm) => vm.isSelected(widget.item),
     );
@@ -397,11 +396,11 @@ class _FunctionTileState extends State<_FunctionTile> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
           decoration: BoxDecoration(
-            color: selected ? p.a(900) : Colors.transparent,
+            color: selected ? n.selectedSurface : Colors.transparent,
             borderRadius: n.radius.mdAll,
             border: Border.all(
               color: selected
-                  ? p.accent
+                  ? n.selectedBorder
                   : hovered
                   ? n.textColor.withValues(alpha: 0.4)
                   : n.divider,

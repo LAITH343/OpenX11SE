@@ -110,18 +110,18 @@ class PillChip extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: selected
-                ? p.a(800)
+                ? n.selectedSurface
                 : hovered
                 ? n.hoverTint
                 : Colors.transparent,
             borderRadius: n.radius.pillAll,
-            border: Border.all(color: selected ? p.accent : n.divider),
+            border: Border.all(color: selected ? n.selectedBorder : n.divider),
           ),
           child: Text(
             label,
             style: n.text.tabular(
               (dense ? n.text.micro.copyWith(fontSize: 11.5) : n.text.small)
-                  .copyWith(color: selected ? p.a(100) : n.textColor),
+                  .copyWith(color: n.textColor),
             ),
           ),
         );

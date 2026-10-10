@@ -94,7 +94,7 @@ class _Segment<T> extends StatelessWidget {
       focusRadius: BorderRadius.zero,
       builder: (context, states) {
         final hovered = states.contains(WidgetState.hovered);
-        final fg = selected ? n.accent : n.textColor;
+        final fg = n.textColor;
         var style = (dense ? n.text.caption : n.text.small).copyWith(
           color: fg,
           height: 1.3,
@@ -107,8 +107,13 @@ class _Segment<T> extends StatelessWidget {
             vertical: dense ? 5 : 7,
           ),
           decoration: BoxDecoration(
-            color: !selected && hovered ? n.hoverTint : Colors.transparent,
-            border: selected ? Border.all(color: n.accent) : null,
+            color: selected
+                ? n.selectedSurface
+                : hovered
+                ? n.hoverTint
+                : Colors.transparent,
+            borderRadius: n.radius.smAll,
+            border: selected ? Border.all(color: n.selectedBorder) : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

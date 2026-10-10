@@ -121,12 +121,20 @@ class NocturneTheme extends ThemeExtension<NocturneTheme> {
   Color get accent => palette.accent;
   Color get divider => palette.divider;
 
-  Color get textMuted => palette.text.withValues(alpha: 0.55);
-  Color get textSecondary => palette.text.withValues(alpha: 0.62);
-  Color get textLabel => palette.text.withValues(alpha: 0.70);
+  Color get textMuted =>
+      palette.text.withValues(alpha: palette.isDark ? 0.55 : 0.64);
+  Color get textSecondary =>
+      palette.text.withValues(alpha: palette.isDark ? 0.62 : 0.72);
+  Color get textLabel =>
+      palette.text.withValues(alpha: palette.isDark ? 0.70 : 0.80);
 
   Color get hoverTint => palette.text.withValues(alpha: 0.07);
   Color get pressedTint => palette.text.withValues(alpha: 0.14);
+  Color get selectedSurface => palette.isDark
+      ? Color.lerp(palette.surface, palette.text, 0.08)!
+      : palette.n(800);
+  Color get selectedBorder =>
+      palette.text.withValues(alpha: palette.isDark ? 0.24 : 0.18);
   Color get accentHover => palette.accent.withValues(alpha: 0.12);
   Color get accentPressed => palette.accent.withValues(alpha: 0.22);
   Color get selection => palette.accent.withValues(alpha: 0.30);
@@ -188,7 +196,7 @@ ThemeData buildNocturneTheme(NocturnePalette p) {
   final scheme = ColorScheme(
     brightness: p.brightness,
     primary: p.accent,
-    onPrimary: p.bg,
+    onPrimary: p.isDark ? p.n(100) : p.bg,
     primaryContainer: p.a(800),
     onPrimaryContainer: p.a(100),
     secondary: p.a(400),

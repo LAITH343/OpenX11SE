@@ -168,7 +168,7 @@ class _StageCardState extends State<_StageCard>
                 duration: n.motion.medium,
                 decoration: BoxDecoration(
                   color: widget.selected
-                      ? Color.lerp(p.surface, p.accent, 0.09)
+                      ? n.selectedSurface
                       : p.surface,
                   borderRadius: n.radius.mdAll,
                   boxShadow: flashing
@@ -180,7 +180,7 @@ class _StageCardState extends State<_StageCard>
                           BoxShadow(color: p.accent, spreadRadius: 2 - t),
                         ]
                       : widget.selected
-                      ? [BoxShadow(color: p.accent, spreadRadius: 1)]
+                      ? [BoxShadow(color: n.selectedBorder, spreadRadius: 1)]
                       : p.shadowSm,
                 ),
                 child: child,
