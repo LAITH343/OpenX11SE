@@ -95,7 +95,6 @@ class PillChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = context.nocturne;
-    final p = n.palette;
     return Pressable(
       onPressed: onPressed,
       selected: selected,

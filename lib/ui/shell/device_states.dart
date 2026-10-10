@@ -107,16 +107,16 @@ class NoDeviceState extends StatelessWidget {
           title: 'Connect your X11SE',
           body: 'OpenX11SE finds the mouse on its own — no restart needed.',
         ),
-        Column(
+        const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 10,
           children: [
-            const _Step(1, 'Plug in the USB-C cable, or the 2.4 GHz dongle.'),
-            const _Step(
+            _Step(1, 'Plug in the USB-C cable, or the 2.4 GHz dongle.'),
+            _Step(
               2,
               'Set the switch on the underside to 2.4G (or use the cable).',
             ),
-            const _Step(3, 'It appears here within a second or two.'),
+            _Step(3, 'It appears here within a second or two.'),
           ],
         ),
         if (shell.failureText != null)
