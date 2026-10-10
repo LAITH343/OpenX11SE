@@ -12,7 +12,6 @@ import '../macros/macro_library_view_model.dart';
 import '../settings/update_dialog.dart';
 import '../settings/update_view_model.dart';
 import '../widgets/toast_host.dart';
-import 'app_header.dart';
 import 'device_states.dart';
 import 'dialog_layer.dart';
 import 'edit_session_view_model.dart';
@@ -88,19 +87,11 @@ class _AppShellState extends State<AppShell> {
                         builder: (context, constraints) {
                           final compact =
                               constraints.maxWidth < AppShell.compactWidth;
-                          return Column(
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const AppHeader(),
-                              Expanded(
-                                child: Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    NavRail(compact: compact),
-                                    const Expanded(child: _Main()),
-                                  ],
-                                ),
-                              ),
+                              NavRail(compact: compact),
+                              const Expanded(child: _Main()),
                             ],
                           );
                         },

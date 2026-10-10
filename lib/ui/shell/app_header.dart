@@ -6,81 +6,8 @@ import '../../core/theme/nocturne_theme.dart';
 import '../../domain/device_info.dart';
 import '../widgets/app_button.dart';
 import '../widgets/motion.dart';
-import '../widgets/tag.dart';
 import 'edit_session_view_model.dart';
 import 'shell_view_model.dart';
-
-class AppHeader extends StatelessWidget {
-  const AppHeader({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final n = context.nocturne;
-    final edit = context.watch<EditSessionViewModel>();
-    final count = edit.pendingCount;
-    if (!edit.autoApply && !edit.hasPending && !edit.writing) {
-      return const SizedBox.shrink();
-    }
-    return SizedBox(
-      height: 62,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 14, right: 16),
-            child: Row(
-              children: [
-                const Spacer(),
-                if (edit.autoApply) ...[
-                  const Tooltip(
-                    message: 'Changes are written automatically â€” see Settings',
-                    child: Tag(
-                      label: 'Auto-apply',
-                      variant: TagVariant.neutral,
-                      icon: AppIcons.lightning,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                ],
-                if (edit.hasPending) ...[
-                  EntranceTransition(
-                    kind: Entrance.fade,
-                    child: Row(
-                      children: [
-                        const ChangedDot(glow: true),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$count unsaved change${count == 1 ? '' : 's'}',
-                          style: n.text.caption.copyWith(
-                            color: n.palette.a(300),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                ],
-                if (edit.writing) ...[
-                  Text(
-                    'Writing ${edit.writeLabel}â€¦',
-                    style: n.text.caption.copyWith(color: n.textSecondary),
-                  ),
-                  const SizedBox(width: 14),
-                ],
-              ],
-            ),
-          ),
-          if (edit.writing)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _WriteProgress(value: edit.writeProgress),
-            ),
-        ],
-      ),
-    );
-  }
-}
 
 class TitleBarActions extends StatelessWidget {
   const TitleBarActions({super.key});
@@ -140,36 +67,6 @@ class _CountBadge extends StatelessWidget {
       child: Text(
         '$count',
         style: n.text.tabular(n.text.micro.copyWith(color: n.palette.a(100))),
-      ),
-    );
-  }
-}
-
-class _WriteProgress extends StatelessWidget {
-  const _WriteProgress({required this.value});
-
-  final double value;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = context.nocturne;
-    return Container(
-      height: 2,
-      color: n.palette.n(900),
-      alignment: Alignment.centerLeft,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(end: value),
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.ease,
-        builder: (context, v, _) => FractionallySizedBox(
-          widthFactor: v.clamp(0.0, 1.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: n.accent,
-              boxShadow: [BoxShadow(color: n.accent, blurRadius: 10)],
-            ),
-          ),
-        ),
       ),
     );
   }

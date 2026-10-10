@@ -28,6 +28,7 @@ import 'package:openx11se/ui/shell/appearance_view_model.dart';
 import 'package:openx11se/ui/shell/edit_session_view_model.dart';
 import 'package:openx11se/ui/shell/profiles_view_model.dart';
 import 'package:openx11se/ui/shell/shell_view_model.dart';
+import 'package:openx11se/ui/widgets/app_button.dart';
 import 'package:openx11se/ui/widgets/colour_picker.dart';
 import 'package:openx11se/ui/widgets/toast_host.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +50,18 @@ Future<void> loadFonts() async {
     inter.addFont(read('assets/fonts/Inter-$w.ttf'));
   }
   await inter.load();
+}
+
+void expectApplyCount(WidgetTester tester, int count) {
+  final applyButton = find.ancestor(
+    of: find.text('Apply'),
+    matching: find.byType(AppButton),
+  );
+  expect(applyButton, findsOneWidget);
+  expect(
+    find.descendant(of: applyButton, matching: find.text('$count')),
+    findsOneWidget,
+  );
 }
 
 void main() {
@@ -187,7 +200,7 @@ void main() {
 
     edit.stage((s) => s.copyWith(polling: PollingRate.hz500));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('1 unsaved change'), findsOneWidget);
+    expectApplyCount(tester, 1);
 
     shell.selectSection(AppSection.buttons);
     await tester.pump(const Duration(milliseconds: 400));
@@ -204,7 +217,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Assign a function to'), findsNothing);
     expect(find.text('Copy'), findsOneWidget);
-    expect(find.text('2 unsaved changes'), findsOneWidget);
+    expectApplyCount(tester, 2);
 
     shell.selectSection(AppSection.lighting);
     await tester.pump(const Duration(milliseconds: 400));
@@ -215,7 +228,7 @@ void main() {
     await tester.tap(find.text('Static'));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(ColourPicker), findsOneWidget);
-    expect(find.text('3 unsaved changes'), findsOneWidget);
+    expectApplyCount(tester, 3);
     tester.view.physicalSize = const Size(880, 600);
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Live preview · Static'), findsOneWidget);
@@ -229,7 +242,7 @@ void main() {
     await tester.tap(find.text('16 ms · Worn switches'));
     await tester.pump(const Duration(milliseconds: 400));
     expect(power.power.debounceMs, 16);
-    expect(find.text('4 unsaved changes'), findsOneWidget);
+    expectApplyCount(tester, 4);
 
     shell.selectSection(AppSection.settings);
     await tester.pump(const Duration(milliseconds: 400));
@@ -266,7 +279,7 @@ void main() {
     });
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Disconnected'), findsOneWidget);
-    expect(find.text('4 unsaved changes'), findsOneWidget);
+    expectApplyCount(tester, 4);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.runAsync(() async {
