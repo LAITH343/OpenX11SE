@@ -22,7 +22,7 @@ class _StatePage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 40),
             child: Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.center,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 520),
                 child: EntranceTransition(
