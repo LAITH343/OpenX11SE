@@ -60,18 +60,14 @@ class HidException implements Exception {
   String toString() => 'HidException: $message';
 }
 
-enum HidAvailability { available, unsupported, insecureContext }
+enum HidAvailability { available, unsupported }
 
 abstract interface class HidTransport {
   HidAvailability get availability;
 
-  bool get requiresUserGrant;
-
   Stream<List<HidDeviceInfo>> get devices;
 
   Future<List<HidDeviceInfo>> enumerate();
-
-  Future<List<HidDeviceInfo>> requestDevice();
 
   Future<HidConnection> open(HidDeviceInfo device);
 

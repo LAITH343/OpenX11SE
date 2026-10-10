@@ -1,4 +1,4 @@
 import 'platform_database.dart';
 
 Future<PlatformDatabase> openPlatformDatabase(String name) =>
-    throw UnsupportedError('No database is available on this platform');
+    throw UnsupportedError('OpenX11SE currently supports Windows desktop.');

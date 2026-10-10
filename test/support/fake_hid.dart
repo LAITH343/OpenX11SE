@@ -124,8 +124,6 @@ class FakeHidTransport implements HidTransport {
   HidAvailability get availability => HidAvailability.available;
 
   @override
-  bool get requiresUserGrant => false;
-
   @override
   Stream<List<HidDeviceInfo>> get devices => _devices.stream;
 
@@ -142,8 +140,6 @@ class FakeHidTransport implements HidTransport {
   }
 
   @override
-  Future<List<HidDeviceInfo>> requestDevice() async => present;
-
   @override
   Future<HidConnection> open(HidDeviceInfo device) async {
     final error = openError;

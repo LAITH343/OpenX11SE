@@ -29,8 +29,6 @@ class WindowsHidTransport implements HidTransport {
   HidAvailability get availability => HidAvailability.available;
 
   @override
-  bool get requiresUserGrant => false;
-
   @override
   Stream<List<HidDeviceInfo>> get devices => _devices.stream;
 
@@ -57,9 +55,6 @@ class WindowsHidTransport implements HidTransport {
       ..addEntries(found.map((d) => MapEntry(d.info.id, d)));
     return [for (final d in found) d.info];
   }
-
-  @override
-  Future<List<HidDeviceInfo>> requestDevice() => enumerate();
 
   void _startPolling() {
     _poll ??= Timer.periodic(pollInterval, (_) => _refresh());

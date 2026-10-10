@@ -9,7 +9,6 @@ class AppSettings {
     this.lastSection,
     this.startWithSystem = false,
     this.minimiseToTray = true,
-    this.autoReconnect = true,
     this.autoCheckUpdates = true,
     this.lastUpdateCheck,
   });
@@ -23,7 +22,6 @@ class AppSettings {
   final String? lastSection;
   final bool startWithSystem;
   final bool minimiseToTray;
-  final bool autoReconnect;
   final bool autoCheckUpdates;
   final DateTime? lastUpdateCheck;
 
@@ -35,7 +33,6 @@ class AppSettings {
     String? lastSection,
     bool? startWithSystem,
     bool? minimiseToTray,
-    bool? autoReconnect,
     bool? autoCheckUpdates,
     DateTime? lastUpdateCheck,
   }) => AppSettings(
@@ -46,7 +43,6 @@ class AppSettings {
     lastSection: lastSection ?? this.lastSection,
     startWithSystem: startWithSystem ?? this.startWithSystem,
     minimiseToTray: minimiseToTray ?? this.minimiseToTray,
-    autoReconnect: autoReconnect ?? this.autoReconnect,
     autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
     lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
   );
@@ -61,7 +57,6 @@ class AppSettings {
       other.lastSection == lastSection &&
       other.startWithSystem == startWithSystem &&
       other.minimiseToTray == minimiseToTray &&
-      other.autoReconnect == autoReconnect &&
       other.autoCheckUpdates == autoCheckUpdates &&
       other.lastUpdateCheck == lastUpdateCheck;
 
@@ -74,7 +69,6 @@ class AppSettings {
     lastSection,
     startWithSystem,
     minimiseToTray,
-    autoReconnect,
     autoCheckUpdates,
     lastUpdateCheck,
   );

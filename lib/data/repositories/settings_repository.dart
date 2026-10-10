@@ -10,7 +10,6 @@ abstract final class _Keys {
   static const lastSection = 'last_section';
   static const startWithSystem = 'start_with_system';
   static const minimiseToTray = 'minimise_to_tray';
-  static const autoReconnect = 'auto_reconnect';
   static const autoCheckUpdates = 'auto_check_updates';
   static const lastUpdateCheck = 'last_update_check';
 }
@@ -69,7 +68,6 @@ class SettingsRepository {
       lastSection: stored[_Keys.lastSection],
       startWithSystem: flag(_Keys.startWithSystem, d.startWithSystem),
       minimiseToTray: flag(_Keys.minimiseToTray, d.minimiseToTray),
-      autoReconnect: flag(_Keys.autoReconnect, d.autoReconnect),
       autoCheckUpdates: flag(_Keys.autoCheckUpdates, d.autoCheckUpdates),
       lastUpdateCheck: switch (int.tryParse(
         stored[_Keys.lastUpdateCheck] ?? '',
@@ -90,7 +88,6 @@ class SettingsRepository {
       _Keys.lastSection: s.lastSection,
       _Keys.startWithSystem: flag(s.startWithSystem),
       _Keys.minimiseToTray: flag(s.minimiseToTray),
-      _Keys.autoReconnect: flag(s.autoReconnect),
       _Keys.autoCheckUpdates: flag(s.autoCheckUpdates),
       _Keys.lastUpdateCheck: s.lastUpdateCheck?.millisecondsSinceEpoch
           .toString(),

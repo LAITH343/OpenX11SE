@@ -123,9 +123,7 @@ void main() {
         appearance: appearance,
         edit: edit,
         shell: shell,
-        device: device,
         profiles: profilesVm,
-        isWeb: false,
       );
       updates = UpdateViewModel(
         repository: const NoUpdateRepository(),

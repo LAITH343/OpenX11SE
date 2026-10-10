@@ -31,8 +31,6 @@ class DeviceDebugViewModel extends ChangeNotifier {
 
   bool get isSupported => _repository.isSupported;
 
-  bool get requiresUserGrant => _repository.requiresUserGrant;
-
   List<String> get settingsLines {
     final state = _state;
     if (state is! DeviceReady) return const [];
@@ -72,8 +70,6 @@ class DeviceDebugViewModel extends ChangeNotifier {
   }
 
   Future<void> rescan() => _guard(_repository.rescan);
-
-  Future<void> requestDevice() => _guard(_repository.requestDevice);
 
   Future<void> refresh() => _guard(_repository.refresh);
 

@@ -385,7 +385,6 @@ void main() {
         lastSection: 'macros',
         startWithSystem: false,
         minimiseToTray: false,
-        autoReconnect: false,
       );
       await repo.save(changed);
       expect(await repo.settings(), changed);

@@ -9,8 +9,6 @@ class UnsupportedHidTransport implements HidTransport {
   HidAvailability get availability => HidAvailability.unsupported;
 
   @override
-  bool get requiresUserGrant => false;
-
   @override
   Stream<List<HidDeviceInfo>> get devices => const Stream.empty();
 
@@ -18,8 +16,6 @@ class UnsupportedHidTransport implements HidTransport {
   Future<List<HidDeviceInfo>> enumerate() async => const [];
 
   @override
-  Future<List<HidDeviceInfo>> requestDevice() async => const [];
-
   @override
   Future<HidConnection> open(HidDeviceInfo device) =>
       Future.error(const HidException('HID is not supported on this platform'));

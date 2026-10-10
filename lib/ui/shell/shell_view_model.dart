@@ -54,7 +54,6 @@ class ShellViewModel extends ChangeNotifier {
   List<Profile> _profiles = const [];
   bool _profileMenuOpen = false;
   DialogRequest? _dialog;
-  String? _connectFailure;
   bool _sleepChecking = false;
   bool _checkingOff = false;
   bool _disposed = false;
@@ -91,25 +90,16 @@ class ShellViewModel extends ChangeNotifier {
     _ => false,
   };
 
-  bool get needsUserGrant => _device.requiresUserGrant;
-
   HidAvailability get availability => _device.availability;
 
   bool get isHidAvailable => availability == HidAvailability.available;
 
   String? get failureText {
-    if (_connectFailure != null) return _connectFailure;
     final state = _state;
     if (state is! DeviceFailed) return null;
     if (state.error is DeviceOpenException) {
-      return needsUserGrant
-          ? 'The mouse could not be opened. Close other tabs or apps using '
-                'it, then try again.'
-          : 'The mouse could not be opened. Close other mouse software, then '
-                'click Check again.';
-    }
-    if (kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
-      return 'Not supported in the browser on Windows — use the desktop app';
+      return 'The mouse could not be opened. Close other mouse software, then '
+          'click Check again.';
     }
     return 'The mouse was found but its settings could not be read.';
   }
@@ -216,19 +206,6 @@ class ShellViewModel extends ChangeNotifier {
 
   Future<void> checkAgain() => _guard(_device.rescan);
 
-  Future<void> connect() async {
-    _connectFailure = null;
-    try {
-      await _device.requestDevice();
-    } on Object {
-      if (_disposed) return;
-      _connectFailure =
-          'The browser did not allow access to the mouse. '
-          'Click Connect device and choose X11SE.';
-      notifyListeners();
-    }
-  }
-
   Future<void> reconnect() => _guard(_device.refresh);
 
   Future<void> checkSleep() async {
@@ -279,7 +256,6 @@ class ShellViewModel extends ChangeNotifier {
   void _onState(DeviceState state) {
     final previous = _state;
     _state = state;
-    if (state is! DeviceAbsent) _connectFailure = null;
     switch (state) {
       case DeviceReady(:final info, :final settings):
         _announceReady(previous, state);

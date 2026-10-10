@@ -26,7 +26,6 @@ class DeviceRepository {
     this.wakeRetryInterval = const Duration(seconds: 10),
     this.awakeReportGap = const Duration(seconds: 3),
     this.offTimeout = const Duration(seconds: 7),
-    this.autoConnect = true,
   }) : _timing = timing ?? DeviceTiming.forConnection;
 
   final HidTransport _transport;
@@ -34,7 +33,6 @@ class DeviceRepository {
   final Duration wakeRetryInterval;
   final Duration awakeReportGap;
   final Duration offTimeout;
-  bool autoConnect;
   final _clock = Stopwatch()..start();
   Duration? _lastBattery;
   bool _applying = false;
@@ -57,8 +55,6 @@ class DeviceRepository {
 
   bool get isSupported => availability == HidAvailability.available;
 
-  bool get requiresUserGrant => _transport.requiresUserGrant;
-
   DeviceState get state => _state;
 
   Stream<DeviceState> get states => _states.stream;
@@ -70,7 +66,6 @@ class DeviceRepository {
   }
 
   void _onListedDevices(List<HidDeviceInfo> devices) {
-    if (!autoConnect && requiresUserGrant && _current == null) return;
     _onDevices(devices);
   }
 
@@ -83,9 +78,6 @@ class DeviceRepository {
     }
     _onDevices(devices);
   }
-
-  Future<void> requestDevice() async =>
-      _onDevices(await _transport.requestDevice());
 
   void _onDevices(List<HidDeviceInfo> devices) {
     if (_disposed) return;

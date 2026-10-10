@@ -336,10 +336,8 @@ void main() {
         appearance: appearance,
         edit: edit,
         shell: shell,
-        device: device,
         profiles: vm,
         system: system,
-        isWeb: false,
       );
     });
 
@@ -526,8 +524,6 @@ void main() {
 
       await settingsVm.setStartWithSystem(true);
       expect(system.calls.last, 'startup true');
-      await settingsVm.setAutoReconnect(false);
-      expect(device.autoConnect, isFalse);
     });
 
     test('device info rows follow the connection', () async {

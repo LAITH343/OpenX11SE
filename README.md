@@ -1,6 +1,6 @@
 # OpenX11SE
 
-Open-source configuration app for the Attack Shark X11SE mouse, for Windows and the web.
+Open-source configuration app for the Attack Shark X11SE mouse on Windows.
 
 - DPI stages, polling rate, angle snap and ripple control
 - Button remapping with keyboard shortcuts, media keys and macros
@@ -13,7 +13,7 @@ Not affiliated with Attack Shark.
 
 ## Requirements
 
-- Windows 10 1809 or later, or a desktop browser with WebHID: Chrome, Edge or Opera.
+- Windows 10 1809 or later.
 - The mouse connected over the USB-C cable or the 2.4 GHz dongle.
 
 ## Development
@@ -21,7 +21,6 @@ Not affiliated with Attack Shark.
 ```
 flutter pub get
 flutter run -d windows
-flutter run -d chrome
 flutter test
 ```
 
@@ -35,15 +34,6 @@ powershell -ExecutionPolicy Bypass -File tool\build_windows_installer.ps1
 
 The installer and its SHA-256 file are written to `build\installer`. It installs per user under
 `%LOCALAPPDATA%\Programs\OpenX11SE` and needs no administrator rights.
-
-## Web build
-
-```
-flutter build web --release
-```
-
-Deploy `build/web` as static files. WebHID only works on pages served over HTTPS or from
-`localhost`. Settings are stored in the browser's IndexedDB.
 
 ## Testing on hardware
 

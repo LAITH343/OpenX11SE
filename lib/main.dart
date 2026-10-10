@@ -6,7 +6,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
-import 'core/theme/app_icons.dart';
 import 'data/db/app_database.dart';
 import 'data/db/database_opener.dart';
 import 'data/hid/hid_transport_factory.dart';
@@ -70,10 +69,7 @@ Future<void> main(List<String> args) async {
         ),
         Provider(create: (_) => DeviceCacheRepository(database)),
         Provider<DeviceRepository>(
-          create: (_) => DeviceRepository(
-            createHidTransport(),
-            autoConnect: appSettings.autoReconnect,
-          ),
+          create: (_) => DeviceRepository(createHidTransport()),
           dispose: (_, repository) => repository.dispose(),
         ),
         ChangeNotifierProvider(
@@ -85,16 +81,7 @@ Future<void> main(List<String> args) async {
         ),
         ChangeNotifierProvider(
           create: (_) {
-            final toasts = ToastController();
-            if (!database.persistent) {
-              toasts.show(
-                'This browser blocks storage — changes here won’t be kept '
-                'after a reload',
-                kind: ToastKind.warning,
-                icon: AppIconsFill.warning,
-              );
-            }
-            return toasts;
+            return ToastController();
           },
         ),
         ChangeNotifierProvider(
@@ -134,7 +121,6 @@ Future<void> main(List<String> args) async {
             appearance: context.read(),
             edit: context.read(),
             shell: context.read(),
-            device: context.read(),
             profiles: context.read(),
             initial: appSettings,
             system: system,

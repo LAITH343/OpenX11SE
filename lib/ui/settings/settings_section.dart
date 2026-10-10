@@ -239,15 +239,6 @@ class _BehaviourCard extends StatelessWidget {
             value: vm.minimiseToTray,
             onChanged: (v) => unawaited(vm.setMinimiseToTray(v)),
           ),
-        if (vm.showsReconnect)
-          ToggleRow(
-            title: 'Reconnect paired mouse',
-            description:
-                'Reconnect automatically to a mouse this browser was already '
-                'allowed to use.',
-            value: vm.autoReconnect,
-            onChanged: (v) => unawaited(vm.setAutoReconnect(v)),
-          ),
         if (updates.isSupported)
           ToggleRow(
             title: 'Automatically check for updates',

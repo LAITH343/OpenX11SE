@@ -272,8 +272,7 @@ class _DeviceSummary extends StatelessWidget {
       ConnectionStatus.off => 'Waiting for the mouse',
       ConnectionStatus.disconnected => 'Edits kept · reconnect to apply',
       ConnectionStatus.loading => 'Reading settings…',
-      _ when !shell.isHidAvailable => 'WebHID not available',
-      _ when shell.needsUserGrant => 'Click Connect to pair',
+      _ when !shell.isHidAvailable => 'Device connection unavailable',
       _ => 'Plug in cable or dongle',
     };
     final badgeIcon = Icon(status.icon, size: 12, color: status.color);

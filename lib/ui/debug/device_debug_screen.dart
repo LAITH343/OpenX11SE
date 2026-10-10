@@ -42,12 +42,6 @@ class _DeviceDebugBody extends StatelessWidget {
             trailing: Wrap(
               spacing: n.space.s3,
               children: [
-                if (vm.requiresUserGrant)
-                  AppButton.primary(
-                    label: 'Connect device',
-                    icon: AppIcons.plugsConnected,
-                    onPressed: vm.requestDevice,
-                  ),
                 AppButton(
                   label: 'Check again',
                   icon: AppIcons.magnifyingGlass,

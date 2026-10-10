@@ -93,9 +93,8 @@ class NoDeviceState extends StatelessWidget {
     final n = context.nocturne;
     final shell = context.watch<ShellViewModel>();
     if (shell.availability != HidAvailability.available) {
-      return _UnsupportedState(availability: shell.availability);
+      return const _UnsupportedState();
     }
-    final web = shell.needsUserGrant;
     final muted = n.text.small.copyWith(color: n.textSecondary);
     return _StatePage(
       children: [
@@ -104,12 +103,9 @@ class NoDeviceState extends StatelessWidget {
             child: Icon(AppIcons.mouseSimple, size: 32, color: n.accent),
           ),
         ),
-        _Heading(
+        const _Heading(
           title: 'Connect your X11SE',
-          body: web
-              ? 'Your browser needs your permission before it can talk to the '
-                    'mouse.'
-              : 'OpenX11SE finds the mouse on its own — no restart needed.',
+          body: 'OpenX11SE finds the mouse on its own — no restart needed.',
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,12 +116,7 @@ class NoDeviceState extends StatelessWidget {
               2,
               'Set the switch on the underside to 2.4G (or use the cable).',
             ),
-            _Step(
-              3,
-              web
-                  ? 'Click Connect and choose “X11SE” in the browser prompt.'
-                  : 'It appears here within a second or two.',
-            ),
+            const _Step(3, 'It appears here within a second or two.'),
           ],
         ),
         if (shell.failureText != null)
@@ -133,93 +124,42 @@ class NoDeviceState extends StatelessWidget {
             shell.failureText!,
             style: muted.copyWith(color: n.palette.warning),
           ),
-        if (web)
-          Wrap(
-            spacing: 14,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              AppButton.primary(
-                label: 'Connect device',
-                icon: AppIcons.usb,
-                onPressed: shell.connect,
-              ),
-              Text(
-                'Needs Chrome, Edge or Opera (WebHID)',
-                style: n.text.caption.copyWith(
-                  color: n.textColor.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          )
-        else
-          Wrap(
-            spacing: 14,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Spinner(),
-                  const SizedBox(width: 8),
-                  Text('Searching for devices…', style: muted),
-                ],
-              ),
-              AppButton.ghost(
-                label: 'Check again',
-                onPressed: shell.checkAgain,
-              ),
-            ],
-          ),
+        Wrap(
+          spacing: 14,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Spinner(),
+                const SizedBox(width: 8),
+                Text('Searching for devices…', style: muted),
+              ],
+            ),
+            AppButton.ghost(label: 'Check again', onPressed: shell.checkAgain),
+          ],
+        ),
       ],
     );
   }
 }
 
 class _UnsupportedState extends StatelessWidget {
-  const _UnsupportedState({required this.availability});
-
-  final HidAvailability availability;
+  const _UnsupportedState();
 
   @override
   Widget build(BuildContext context) {
     final n = context.nocturne;
-    final insecure = availability == HidAvailability.insecureContext;
     return _StatePage(
       children: [
         _DeviceDisc(
-          child: Icon(
-            insecure ? AppIcons.lockSimple : AppIcons.browser,
-            size: 30,
-            color: n.palette.warning,
-          ),
+          child: Icon(AppIcons.browser, size: 30, color: n.palette.warning),
         ),
-        _Heading(
-          title: insecure
-              ? 'This page needs a secure connection'
-              : 'This browser can’t reach the mouse',
-          body: insecure
-              ? 'The browser only allows access to USB devices on pages served '
-                    'over HTTPS or from localhost.'
-              : 'OpenX11SE talks to the mouse through WebHID, which is '
-                    'available in desktop Chrome, Edge and Opera.',
+        const _Heading(
+          title: 'This platform isn’t supported',
+          body: 'OpenX11SE currently supports Windows desktop.',
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 10,
-          children: insecure
-              ? const [
-                  _Step(1, 'Open this page with an https:// address.'),
-                  _Step(2, 'Or run it locally from http://localhost.'),
-                ]
-              : const [
-                  _Step(1, 'Open this page in Chrome, Edge or Opera.'),
-                  _Step(
-                    2,
-                    'Use a desktop computer — phones are not supported.',
-                  ),
-                ],
-        ),
+        const _Step(1, 'Run OpenX11SE on Windows 10 1809 or later.'),
       ],
     );
   }

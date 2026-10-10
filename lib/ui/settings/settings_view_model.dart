@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_icons.dart';
-import '../../data/repositories/device_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/system/system_integration.dart';
 import '../../domain/app_settings.dart';
@@ -28,11 +27,9 @@ class SettingsViewModel extends ChangeNotifier {
     required this._appearance,
     required this._edit,
     required this._shell,
-    required this._device,
     required this._profiles,
     AppSettings initial = AppSettings.defaults,
     this._system = const NoSystemIntegration(),
-    this.isWeb = kIsWeb,
     this.appVersion = '1.0.0',
   }) : _settings = initial {
     _edit.addListener(_syncAccent);
@@ -51,10 +48,8 @@ class SettingsViewModel extends ChangeNotifier {
   final AppearanceViewModel _appearance;
   final EditSessionViewModel _edit;
   final ShellViewModel _shell;
-  final DeviceRepository _device;
   final ProfilesViewModel _profiles;
   final SystemIntegration _system;
-  final bool isWeb;
   final String appVersion;
   late final StreamSubscription<AppSettings> _subscription;
 
@@ -72,21 +67,13 @@ class SettingsViewModel extends ChangeNotifier {
 
   bool get minimiseToTray => _settings.minimiseToTray;
 
-  bool get autoReconnect => _settings.autoReconnect;
-
   bool get supportsStartup => _system.supportsStartup;
 
   bool get supportsTray => _system.supportsTray;
 
-  bool get showsReconnect => isWeb;
+  String get buildText => 'Desktop · ${_platformName()} · Flutter';
 
-  String get buildText => isWeb
-      ? 'Web · WebHID · Flutter'
-      : 'Desktop · ${_platformName()} · Flutter';
-
-  String get platformNote => isWeb
-      ? 'Uses WebHID — works in Chrome, Edge and Opera.'
-      : 'Talks to the mouse directly over USB HID.';
+  String get platformNote => 'Talks to the mouse directly over USB HID.';
 
   List<InfoRow> get deviceInfo {
     final online = _shell.isOnline;
@@ -124,9 +111,6 @@ class SettingsViewModel extends ChangeNotifier {
 
   Future<void> setMinimiseToTray(bool value) =>
       _update((s) => s.copyWith(minimiseToTray: value));
-
-  Future<void> setAutoReconnect(bool value) =>
-      _update((s) => s.copyWith(autoReconnect: value));
 
   Future<void> restoreFactoryDefaults() async {
     final confirmed = await _shell.confirm(
@@ -170,7 +154,6 @@ class SettingsViewModel extends ChangeNotifier {
       AppTheme.light => ThemeMode.light,
       AppTheme.system => ThemeMode.system,
     };
-    _device.autoConnect = _settings.autoReconnect;
     _syncAccent();
   }
 
