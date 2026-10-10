@@ -644,7 +644,7 @@ class _RowLayout extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     spacing: 8,
     children: [
-      SizedBox(width: 30, child: number),
+      SizedBox(width: 40, child: number),
       Expanded(child: key_),
       SizedBox(width: 92, child: action),
       SizedBox(width: 140, child: delay),
@@ -687,7 +687,8 @@ class _EventRow extends StatelessWidget {
             child: Tooltip(
               message: 'Drag to reorder',
               child: Row(
-                spacing: 4,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 2,
                 children: [
                   Icon(AppIcons.dotsSixVertical, size: 13, color: muted),
                   Text(
