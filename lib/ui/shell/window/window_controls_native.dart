@@ -13,7 +13,7 @@ Future<void> initWindow({bool minimised = false, bool hidden = false}) async {
   _ready = true;
   final options = WindowOptions(
     size: const Size(1280, 800),
-    minimumSize: minimumAppSize,
+    minimumSize: minimumWindowSize,
     center: true,
     title: 'OpenX11SE',
     titleBarStyle: TitleBarStyle.hidden,
