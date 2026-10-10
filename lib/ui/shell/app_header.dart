@@ -8,18 +8,18 @@ import '../widgets/app_button.dart';
 import '../widgets/motion.dart';
 import '../widgets/tag.dart';
 import 'edit_session_view_model.dart';
-import 'profile_menu.dart';
 import 'shell_view_model.dart';
 
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
-
   @override
   Widget build(BuildContext context) {
     final n = context.nocturne;
     final edit = context.watch<EditSessionViewModel>();
-    final online = context.select<ShellViewModel, bool>((s) => s.isOnline);
     final count = edit.pendingCount;
+    if (!edit.autoApply && !edit.hasPending && !edit.writing) {
+      return const SizedBox.shrink();
+    }
     return SizedBox(
       height: 62,
       child: Stack(
@@ -29,21 +29,10 @@ class AppHeader extends StatelessWidget {
             padding: const EdgeInsets.only(left: 14, right: 16),
             child: Row(
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      const Flexible(child: _DeviceSummary()),
-                      const SizedBox(width: 14),
-                      Container(width: 1, height: 28, color: n.divider),
-                      const SizedBox(width: 14),
-                      const ProfileButton(),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 14),
+                const Spacer(),
                 if (edit.autoApply) ...[
                   const Tooltip(
-                    message: 'Changes are written automatically — see Settings',
+                    message: 'Changes are written automatically â€” see Settings',
                     child: Tag(
                       label: 'Auto-apply',
                       variant: TagVariant.neutral,
@@ -72,36 +61,11 @@ class AppHeader extends StatelessWidget {
                 ],
                 if (edit.writing) ...[
                   Text(
-                    'Writing ${edit.writeLabel}…',
+                    'Writing ${edit.writeLabel}â€¦',
                     style: n.text.caption.copyWith(color: n.textSecondary),
                   ),
                   const SizedBox(width: 14),
                 ],
-                AppButton(
-                  label: 'Discard',
-                  icon: AppIcons.arrowCounterClockwise,
-                  tooltip: 'Discard staged changes',
-                  onPressed: edit.canDiscard ? edit.discard : null,
-                ),
-                const SizedBox(width: 14),
-                AppButton.primary(
-                  label: edit.writing ? 'Writing…' : 'Apply',
-                  minWidth: 108,
-                  icon: edit.writing ? null : AppIcons.uploadSimple,
-                  tooltip: edit.mouseOff
-                      ? 'Turn the mouse on to apply'
-                      : !online
-                      ? 'Reconnect the mouse to apply'
-                      : count > 0
-                      ? 'Write changes to the mouse (Ctrl+S)'
-                      : 'No changes to apply',
-                  trailing: edit.writing
-                      ? null
-                      : count > 0
-                      ? _CountBadge(count: count)
-                      : null,
-                  onPressed: edit.canApply ? edit.apply : null,
-                ),
               ],
             ),
           ),
@@ -118,6 +82,47 @@ class AppHeader extends StatelessWidget {
   }
 }
 
+class TitleBarActions extends StatelessWidget {
+  const TitleBarActions({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final edit = context.watch<EditSessionViewModel>();
+    final online = context.select<ShellViewModel, bool>((s) => s.isOnline);
+    final count = edit.pendingCount;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AppButton(
+          size: AppButtonSize.small,
+          label: 'Discard',
+          icon: AppIcons.arrowCounterClockwise,
+          tooltip: 'Discard staged changes',
+          onPressed: edit.canDiscard ? edit.discard : null,
+        ),
+        const SizedBox(width: 8),
+        AppButton.primary(
+          size: AppButtonSize.small,
+          label: edit.writing ? 'Writing…' : 'Apply',
+          icon: edit.writing ? null : AppIcons.uploadSimple,
+          tooltip: edit.mouseOff
+              ? 'Turn the mouse on to apply'
+              : !online
+              ? 'Reconnect the mouse to apply'
+              : count > 0
+              ? 'Write changes to the mouse (Ctrl+S)'
+              : 'No changes to apply',
+          trailing: edit.writing
+              ? null
+              : count > 0
+              ? _CountBadge(count: count)
+              : null,
+          onPressed: edit.canApply ? edit.apply : null,
+        ),
+      ],
+    );
+  }
+}
 class _CountBadge extends StatelessWidget {
   const _CountBadge({required this.count});
 
@@ -225,7 +230,7 @@ class DeviceStatus {
             : 'Connected through the 2.4 GHz dongle',
       ),
       ConnectionStatus.loading => DeviceStatus(
-        label: 'Reading…',
+        label: 'Readingâ€¦',
         icon: AppIcons.circleNotch,
         color: p.n(400),
         tip: 'Reading settings from the mouse',
@@ -235,7 +240,7 @@ class DeviceStatus {
         label: 'Disconnected',
         icon: AppIcons.plugs,
         color: p.danger,
-        tip: 'Connection lost — edits are kept',
+        tip: 'Connection lost â€” edits are kept',
       ),
       ConnectionStatus.asleep ||
       ConnectionStatus.off ||
@@ -249,8 +254,10 @@ class DeviceStatus {
   }
 }
 
-class _DeviceSummary extends StatelessWidget {
-  const _DeviceSummary();
+class DeviceSummary extends StatelessWidget {
+  const DeviceSummary({super.key, this.titleBar = false});
+
+  final bool titleBar;
 
   @override
   Widget build(BuildContext context) {
@@ -271,11 +278,62 @@ class _DeviceSummary extends StatelessWidget {
       ConnectionStatus.asleep => 'Retrying automatically',
       ConnectionStatus.off => 'Waiting for the mouse',
       ConnectionStatus.disconnected => 'Edits kept · reconnect to apply',
-      ConnectionStatus.loading => 'Reading settings…',
+      ConnectionStatus.loading => 'Reading settingsâ€¦',
       _ when !shell.isHidAvailable => 'Device connection unavailable',
       _ => 'Plug in cable or dongle',
     };
     final badgeIcon = Icon(status.icon, size: 12, color: status.color);
+    if (titleBar) {
+      return Tooltip(
+        message: status.tip,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'X11SE',
+              style: n.text.small.copyWith(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: status.dot ?? status.color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            if (online && shell.firmwareLabel != null) ...[
+              const SizedBox(width: 12),
+              _TitleBarSeparator(color: n.divider),
+              const SizedBox(width: 12),
+              Text(
+                'FW ${shell.firmwareLabel}',
+                style: n.text.caption.copyWith(color: n.textSecondary),
+              ),
+            ],
+            if (showBattery) ...[
+              const SizedBox(width: 12),
+              _TitleBarSeparator(color: n.divider),
+              const SizedBox(width: 12),
+              _Battery(
+                percent: battery,
+                charge: shell.chargeState,
+                stale: asleep || off,
+              ),
+            ],
+            const SizedBox(width: 12),
+            _TitleBarSeparator(color: n.divider),
+            const SizedBox(width: 12),
+            Icon(status.icon, size: 13, color: status.color),
+            const SizedBox(width: 5),
+            Text(
+              status.label,
+              style: n.text.caption.copyWith(color: status.color),
+            ),
+          ],
+        ),
+      );
+    }
     return Tooltip(
       message: status.tip,
       child: Row(
@@ -402,6 +460,19 @@ class _DeviceSummary extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TitleBarSeparator extends StatelessWidget {
+  const _TitleBarSeparator({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 1,
+    height: 16,
+    color: color,
+  );
 }
 
 class _Battery extends StatelessWidget {

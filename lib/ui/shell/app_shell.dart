@@ -75,7 +75,7 @@ class _AppShellState extends State<AppShell> {
             color: n.bg,
             child: Column(
               children: [
-                if (hasWindowChrome) TitleBar(profileName: profileName),
+                if (hasWindowChrome) const TitleBar(profileName: ''),
                 Expanded(
                   child: Stack(
                     children: [

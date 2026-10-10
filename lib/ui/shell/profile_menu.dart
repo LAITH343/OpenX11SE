@@ -29,7 +29,9 @@ class ProfileMenuAnchor extends InheritedWidget {
 }
 
 class ProfileButton extends StatelessWidget {
-  const ProfileButton({super.key});
+  const ProfileButton({super.key, this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -39,52 +41,57 @@ class ProfileButton extends StatelessWidget {
       link: ProfileMenuAnchor.of(context),
       child: Pressable(
         onPressed: shell.toggleProfileMenu,
-        tooltip: 'Profiles are stored on this computer',
+        tooltip: compact
+            ? 'Profile: ${shell.profileName}'
+            : 'Profiles are stored on this computer',
         builder: (context, states) {
           final hovered = states.contains(WidgetState.hovered);
           final pressed = states.contains(WidgetState.pressed);
-          return AnimatedContainer(
-            duration: n.motion.fast,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: pressed
-                  ? n.pressedTint
-                  : hovered || shell.profileMenuOpen
-                  ? n.hoverTint
-                  : Colors.transparent,
-              borderRadius: n.radius.mdAll,
-              border: Border.all(color: n.divider),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(AppIcons.userCircle, size: 16, color: n.textColor),
-                const SizedBox(width: 8),
-                Text(
-                  'Profile',
-                  style: n.text.micro.copyWith(color: n.textMuted),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final iconOnly = compact || constraints.maxWidth < 80;
+              return AnimatedContainer(
+                duration: n.motion.fast,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: pressed || hovered || shell.profileMenuOpen
+                      ? n.hoverTint
+                      : Colors.transparent,
+                  borderRadius: n.radius.mdAll,
                 ),
-                const SizedBox(width: 8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 140),
-                  child: Text(
-                    shell.profileName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: n.text.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
-                    ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: iconOnly ? 0 : 12),
+                  child: Row(
+                    mainAxisAlignment: iconOnly
+                        ? MainAxisAlignment.center
+                        : MainAxisAlignment.start,
+                    children: [
+                      Icon(AppIcons.userCircle, size: 18, color: n.textColor),
+                      if (!iconOnly) ...[
+                        const SizedBox(width: 11),
+                        Expanded(
+                          child: Text(
+                            shell.profileName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: n.text.row.copyWith(
+                              color: n.textColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          AppIcons.caretDown,
+                          size: 12,
+                          color: n.textColor.withValues(alpha: 0.6),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Icon(
-                  AppIcons.caretDown,
-                  size: 12,
-                  color: n.textColor.withValues(alpha: 0.6),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

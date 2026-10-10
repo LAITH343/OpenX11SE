@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_palette.dart';
 import '../../core/theme/nocturne_theme.dart';
+import 'app_header.dart';
 import '../widgets/pressable.dart';
 import 'window/window_controls.dart';
 
@@ -18,7 +19,7 @@ class TitleBar extends StatelessWidget {
     final n = context.nocturne;
     final style = n.text.caption;
     return Container(
-      height: 34,
+      height: 50,
       color: n.chrome,
       child: Row(
         children: [
@@ -35,7 +36,7 @@ class TitleBar extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text('OpenX11SE', style: style),
                     const SizedBox(width: 8),
-                    Flexible(
+                    if (profileName.isNotEmpty) Flexible(
                       child: Text(
                         '— $profileName',
                         overflow: TextOverflow.ellipsis,
@@ -44,11 +45,18 @@ class TitleBar extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 14),
+                    Container(width: 1, height: 18, color: n.divider),
+                    const SizedBox(width: 14),
+                    const Flexible(child: DeviceSummary(titleBar: true)),
                   ],
                 ),
               ),
             ),
           ),
+          const SizedBox(width: 8),
+          const TitleBarActions(),
+          const SizedBox(width: 8),
           _WindowButton(
             icon: AppIcons.minus,
             tooltip: 'Minimise',

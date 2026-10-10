@@ -9,6 +9,7 @@ import '../widgets/tag.dart';
 import 'app_section.dart';
 import 'edit_session_view_model.dart';
 import 'shell_view_model.dart';
+import 'profile_menu.dart';
 
 class NavRail extends StatelessWidget {
   const NavRail({super.key, required this.compact});
@@ -28,6 +29,12 @@ class NavRail extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 2,
         children: [
+          ProfileButton(compact: compact),
+          Container(
+            height: 1,
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            color: context.nocturne.divider,
+          ),
           for (final section in AppSection.values)
             _NavItem(
               section: section,
