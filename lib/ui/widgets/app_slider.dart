@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 import 'surface_card.dart';
 
@@ -65,7 +66,12 @@ class _AppSliderState extends State<AppSlider> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Directionality(
+    textDirection: TextDirection.ltr,
+    child: Builder(builder: _build),
+  );
+
+  Widget _build(BuildContext context) {
     final n = context.nocturne;
     final p = n.palette;
     final thumb = widget.large ? 18.0 : 16.0;
@@ -224,7 +230,12 @@ class ValueSlider extends StatelessWidget {
   final String? semanticLabel;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Directionality(
+    textDirection: TextDirection.ltr,
+    child: Builder(builder: _build),
+  );
+
+  Widget _build(BuildContext context) {
     final n = context.nocturne;
     final labels = rangeLabels ?? ['${_fmt(min)} $unit', '${_fmt(max)} $unit'];
     return Column(
@@ -235,9 +246,12 @@ class ValueSlider extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            Text(_fmt(value), style: n.text.valueLarge),
+            Text(tr(_fmt(value)), style: n.text.valueLarge),
             const SizedBox(width: 5),
-            Text(unit, style: n.text.caption.copyWith(color: n.textSecondary)),
+            Text(
+              tr(unit),
+              style: n.text.caption.copyWith(color: n.textSecondary),
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -255,7 +269,7 @@ class ValueSlider extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             for (final l in labels)
-              Text(l, style: n.text.micro.copyWith(color: n.textMuted)),
+              Text(tr(l), style: n.text.micro.copyWith(color: n.textMuted)),
           ],
         ),
       ],
@@ -295,7 +309,7 @@ class SliderRow extends StatelessWidget {
         if (description != null) ...[
           const SizedBox(height: 4),
           Text(
-            description!,
+            tr(description!),
             style: n.text.caption.copyWith(
               fontSize: 12.5,
               color: n.textSecondary,

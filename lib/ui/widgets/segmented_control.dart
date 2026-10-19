@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 import 'pressable.dart';
 
@@ -122,7 +123,7 @@ class _Segment<T> extends StatelessWidget {
                 Icon(option.icon, size: dense ? 13 : 14, color: fg),
                 const SizedBox(width: 6),
               ],
-              Text(option.label, style: style),
+              Text(tr(option.label), style: style),
             ],
           ),
         );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../widgets/app_button.dart';
@@ -84,31 +85,35 @@ class _UpdateDialog extends StatelessWidget {
               StatusBanner(
                 kind: BannerKind.error,
                 icon: AppIconsFill.warningCircle,
-                message: Text(vm.errorText!),
+                message: Text(tr(vm.errorText!)),
               )
             else if (vm.writeInProgress && status == UpdateStatus.ready)
-              const StatusBanner(
+              StatusBanner(
                 kind: BannerKind.warning,
                 icon: AppIconsFill.warning,
                 message: Text(
-                  'Writing to the mouse — install once it finishes.',
+                  tr('Writing to the mouse — install once it finishes.'),
                 ),
               )
             else if (vm.hasUnappliedEdits &&
                 (status == UpdateStatus.ready ||
                     status == UpdateStatus.available))
-              const StatusBanner(
+              StatusBanner(
                 kind: BannerKind.warning,
                 icon: AppIconsFill.warning,
                 message: Text(
-                  'You have unapplied edits. Apply them first — they are '
-                  'lost when the app restarts to install.',
+                  tr(
+                    'You have unapplied edits. Apply them first — they are '
+                    'lost when the app restarts to install.',
+                  ),
                 ),
               ),
             if (status == UpdateStatus.ready)
               Text(
-                'The installer runs silently, then OpenX11SE restarts. '
-                'Profiles, macros and settings are kept.',
+                tr(
+                  'The installer runs silently, then OpenX11SE restarts. '
+                  'Profiles, macros and settings are kept.',
+                ),
                 style: n.text.caption.copyWith(color: n.textSecondary),
               ),
           ],
@@ -181,7 +186,10 @@ class _ReleaseNotes extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 6,
       children: [
-        Text('What’s new', style: n.text.caption.copyWith(color: n.textLabel)),
+        Text(
+          tr('What’s new'),
+          style: n.text.caption.copyWith(color: n.textLabel),
+        ),
         Container(
           constraints: const BoxConstraints(maxHeight: 220),
           decoration: BoxDecoration(
@@ -237,9 +245,11 @@ class _DownloadProgress extends StatelessWidget {
           ),
         ),
         Text(
-          total == null
-              ? '${_mb(received)} MB'
-              : '${_mb(received)} of ${_mb(total!)} MB',
+          tr(
+            total == null
+                ? '${_mb(received)} MB'
+                : '${_mb(received)} of ${_mb(total!)} MB',
+          ),
           style: n.text.tabular(
             n.text.caption.copyWith(color: n.textSecondary),
           ),

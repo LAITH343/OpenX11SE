@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 import 'pressable.dart';
 
@@ -117,7 +118,7 @@ class PillChip extends StatelessWidget {
             border: Border.all(color: selected ? n.selectedBorder : n.divider),
           ),
           child: Text(
-            label,
+            tr(label),
             style: n.text.tabular(
               (dense ? n.text.micro.copyWith(fontSize: 11.5) : n.text.small)
                   .copyWith(color: n.textColor),

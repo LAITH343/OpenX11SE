@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/formatting/number_format.dart';
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/device_info.dart';
@@ -127,9 +128,9 @@ class DevicePane extends StatelessWidget {
               ],
             ),
           ),
-          Positioned(
+          PositionedDirectional(
             top: 0,
-            right: 0,
+            end: 0,
             bottom: 0,
             child: _FadingRule(color: n.divider),
           ),
@@ -186,13 +187,13 @@ class _Header extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('X11SE', style: n.text.subheading.copyWith(height: 1.3)),
+          Text(tr('X11SE'), style: n.text.subheading.copyWith(height: 1.3)),
           if (shell.firmwareLabel != null) ...[
             const SizedBox(width: 8),
             Tooltip(
-              message: 'Firmware version read from the mouse',
+              message: tr('Firmware version read from the mouse'),
               child: Text(
-                'FW ${shell.firmwareLabel}',
+                tr('FW ${shell.firmwareLabel}'),
                 style: n.text.micro.copyWith(color: n.textSecondary),
               ),
             ),
@@ -202,7 +203,7 @@ class _Header extends StatelessWidget {
             child: Align(
               alignment: AlignmentDirectional.centerEnd,
               child: Tooltip(
-                message: status.tip,
+                message: tr(status.tip),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -222,7 +223,7 @@ class _Header extends StatelessWidget {
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          status.label,
+                          tr(status.label),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: n.text.micro.copyWith(color: status.color),
@@ -287,7 +288,7 @@ class _StageReadout extends StatelessWidget {
           spacing: 6,
           children: [
             Text(
-              formatThousands(dpi.activeStage.dpi),
+              tr(formatThousands(dpi.activeStage.dpi)),
               style: n.text.tabular(
                 n.text.display.copyWith(
                   fontSize: 34,
@@ -296,7 +297,10 @@ class _StageReadout extends StatelessWidget {
                 ),
               ),
             ),
-            Text('DPI', style: n.text.caption.copyWith(color: n.textSecondary)),
+            Text(
+              tr('DPI'),
+              style: n.text.caption.copyWith(color: n.textSecondary),
+            ),
           ],
         ),
         Row(
@@ -318,7 +322,7 @@ class _StageReadout extends StatelessWidget {
           ],
         ),
         Text(
-          'Stage ${dpi.activeStageIndex + 1}',
+          tr('Stage ${dpi.activeStageIndex + 1}'),
           style: n.text.tabular(
             n.text.micro.copyWith(fontSize: 11.5, color: n.textSecondary),
           ),
@@ -425,12 +429,12 @@ class _BatteryCard extends StatelessWidget {
     final stateIconWidget = Icon(stateIcon, size: 12, color: stateFg);
     return [
       Tooltip(
-        message: tip,
+        message: tr(tip),
         child: Row(
           children: [
             Icon(icon, size: 22, color: fill),
             const SizedBox(width: 10),
-            Text('$percent%', style: n.text.valueSmall),
+            Text(tr('$percent%'), style: n.text.valueSmall),
             const SizedBox(width: 10),
             Expanded(
               child: Align(
@@ -457,7 +461,7 @@ class _BatteryCard extends StatelessWidget {
                         stateIconWidget,
                       Flexible(
                         child: Text(
-                          state,
+                          tr(state),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: n.text.micro.copyWith(color: stateFg),
@@ -520,7 +524,7 @@ class _Stat extends StatelessWidget {
         spacing: 2,
         children: [
           Text(
-            label,
+            tr(label),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: n.text.micro.copyWith(
@@ -528,7 +532,7 @@ class _Stat extends StatelessWidget {
               color: n.textSecondary,
             ),
           ),
-          Text(value, style: n.text.tabular(n.text.small)),
+          Text(tr(value), style: n.text.tabular(n.text.small)),
         ],
       ),
     );

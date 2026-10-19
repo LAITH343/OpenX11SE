@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 
 Future<T?> showAppDialog<T>({
@@ -60,11 +61,11 @@ class AppDialog extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(title, style: n.text.dialogTitle),
+        Text(tr(title), style: n.text.dialogTitle),
         if (body != null) ...[
           const SizedBox(height: 6),
           Text(
-            body!,
+            tr(body!),
             style: n.text.body.copyWith(
               color: n.textColor.withValues(alpha: 0.85),
             ),

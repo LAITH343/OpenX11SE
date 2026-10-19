@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../buttons/buttons_section.dart';
 import '../lighting/lighting_section.dart';
@@ -77,20 +78,24 @@ class _DisconnectedBanner extends StatelessWidget {
         TextSpan(
           children: [
             TextSpan(
-              text: off
-                  ? 'Mouse is off.'
-                  : asleep
-                  ? 'Mouse is asleep.'
-                  : 'X11SE disconnected.',
+              text: tr(
+                off
+                    ? 'Mouse is off.'
+                    : asleep
+                    ? 'Mouse is asleep.'
+                    : 'X11SE disconnected.',
+              ),
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
             TextSpan(
-              text: off
-                  ? " Your edits are kept — apply them when it's back on."
-                  : asleep
-                  ? ' Move or click it to reconnect — your edits are kept.'
-                  : ' Your edits are kept — apply them when the mouse is '
-                        'back.',
+              text: tr(
+                off
+                    ? " Your edits are kept — apply them when it's back on."
+                    : asleep
+                    ? ' Move or click it to reconnect — your edits are kept.'
+                    : ' Your edits are kept — apply them when the mouse is '
+                          'back.',
+              ),
             ),
           ],
         ),
@@ -111,18 +116,18 @@ class _OffBanner extends StatelessWidget {
   const _OffBanner();
 
   @override
-  Widget build(BuildContext context) => const StatusBanner(
+  Widget build(BuildContext context) => StatusBanner(
     kind: BannerKind.warning,
     icon: AppIcons.power,
     message: Text.rich(
       TextSpan(
         children: [
           TextSpan(
-            text: 'Mouse is off.',
-            style: TextStyle(fontWeight: FontWeight.w500),
+            text: tr('Mouse is off.'),
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
           TextSpan(
-            text: " Your edits are kept — apply them when it's back on.",
+            text: tr(" Your edits are kept — apply them when it's back on."),
           ),
         ],
       ),
@@ -145,7 +150,7 @@ class _WriteErrorBanner extends StatelessWidget {
           : error.asleep
           ? AppIcons.moon
           : AppIcons.xCircle,
-      message: Text(error.message),
+      message: Text(tr(error.message)),
       actions: [
         AppButton.ghost(
           label: 'Dismiss',

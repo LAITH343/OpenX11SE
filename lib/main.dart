@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
+import 'core/l10n/strings.dart';
 import 'data/db/app_database.dart';
 import 'data/db/database_opener.dart';
 import 'data/hid/hid_transport_factory.dart';
@@ -48,6 +49,7 @@ Future<void> main(List<String> args) async {
   await profiles.ensureDefault();
   final settings = SettingsRepository(database);
   final appSettings = await settings.settings();
+  AppStrings.language = AppLanguage.fromCode(appSettings.language);
   final system = createSystemIntegration();
   final toTray = appSettings.minimiseToTray && system.supportsTray;
   final startMinimised = args.contains(startMinimisedArgument);

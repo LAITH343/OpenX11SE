@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/lighting_settings.dart';
@@ -134,13 +135,13 @@ class _ModeTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    mode.label,
+                    tr(mode.label),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: n.text.row,
                   ),
                   Text(
-                    mode.description,
+                    tr(mode.description),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: n.text.micro.copyWith(
@@ -170,9 +171,13 @@ class _Label extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(text, style: n.text.caption.copyWith(color: n.textLabel)),
+          child: Text(
+            tr(text),
+            style: n.text.caption.copyWith(color: n.textLabel),
+          ),
         ),
-        if (value != null) Text(value!, style: n.text.tabular(n.text.small)),
+        if (value != null)
+          Text(tr(value!), style: n.text.tabular(n.text.small)),
       ],
     );
   }
@@ -193,7 +198,7 @@ class _Note extends StatelessWidget {
       children: [
         Icon(AppIcons.info, size: 13, color: color),
         Expanded(
-          child: Text(text, style: n.text.caption.copyWith(color: color)),
+          child: Text(tr(text), style: n.text.caption.copyWith(color: color)),
         ),
       ],
     );
@@ -268,7 +273,7 @@ class _StageColours extends StatelessWidget {
             ),
           ),
         Text(
-          note,
+          tr(note),
           style: n.text.caption.copyWith(
             fontSize: 12.5,
             color: n.textSecondary,
@@ -279,7 +284,7 @@ class _StageColours extends StatelessWidget {
             AppSection.performance,
           ),
           builder: (context, states) => Text(
-            'Edit stage colours',
+            tr('Edit stage colours'),
             style: n.text.caption.copyWith(
               fontSize: 12.5,
               color: n.accent,
@@ -347,9 +352,9 @@ class _LevelControl extends StatelessWidget {
       pips = Row(
         spacing: 8,
         children: [
-          Text(edges.$1, style: style),
+          Text(tr(edges.$1), style: style),
           Expanded(child: pips),
-          Text(edges.$2, style: style),
+          Text(tr(edges.$2), style: style),
         ],
       );
     }
@@ -369,7 +374,7 @@ class _LevelControl extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        if (enabled) body else Tooltip(message: disabledTip, child: body),
+        if (enabled) body else Tooltip(message: tr(disabledTip), child: body),
         if (note != null) _Note(note!),
       ],
     );

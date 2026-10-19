@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../data/hid/hid_transport.dart';
@@ -53,10 +54,10 @@ class _Heading extends StatelessWidget {
     final n = context.nocturne;
     return Column(
       children: [
-        Text(title, textAlign: TextAlign.center, style: n.text.display),
+        Text(tr(title), textAlign: TextAlign.center, style: n.text.display),
         const SizedBox(height: 6),
         Text(
-          body,
+          tr(body),
           textAlign: TextAlign.center,
           style: n.text.body.copyWith(color: n.textSecondary),
         ),
@@ -123,7 +124,7 @@ class NoDeviceState extends StatelessWidget {
         ),
         if (shell.failureText != null)
           Text(
-            shell.failureText!,
+            tr(shell.failureText!),
             textAlign: TextAlign.center,
             style: muted.copyWith(color: n.palette.warning),
           ),
@@ -137,7 +138,7 @@ class NoDeviceState extends StatelessWidget {
               children: [
                 const Spinner(),
                 const SizedBox(width: 8),
-                Text('Searching for devices…', style: muted),
+                Text(tr('Searching for devices…'), style: muted),
               ],
             ),
             AppButton.ghost(label: 'Check again', onPressed: shell.checkAgain),
@@ -192,7 +193,7 @@ class _Step extends StatelessWidget {
           child: Text('$number', style: n.text.caption),
         ),
         const SizedBox(width: 12),
-        Flexible(child: Text(text, style: n.text.body)),
+        Flexible(child: Text(tr(text), style: n.text.body)),
       ],
     );
   }
@@ -275,9 +276,11 @@ class AsleepState extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  shell.sleepChecking
-                      ? 'Checking…'
-                      : 'Dongle connected · retrying automatically',
+                  tr(
+                    shell.sleepChecking
+                        ? 'Checking…'
+                        : 'Dongle connected · retrying automatically',
+                  ),
                   style: n.text.small.copyWith(color: n.textSecondary),
                 ),
               ],
@@ -356,9 +359,11 @@ class OffState extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  shell.sleepChecking
-                      ? 'Checking…'
-                      : 'Dongle connected · waiting for the mouse',
+                  tr(
+                    shell.sleepChecking
+                        ? 'Checking…'
+                        : 'Dongle connected · waiting for the mouse',
+                  ),
                   style: n.text.small.copyWith(color: n.textSecondary),
                 ),
               ],
@@ -396,7 +401,7 @@ class LoadingState extends StatelessWidget {
                   const Spinner(),
                   const SizedBox(width: 10),
                   Text(
-                    'Reading settings from X11SE…',
+                    tr('Reading settings from X11SE…'),
                     style: n.text.small.copyWith(color: n.textSecondary),
                   ),
                 ],

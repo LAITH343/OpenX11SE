@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 
 enum CardElevation { none, sm, md, lg }
@@ -67,7 +68,7 @@ class CardHeading extends StatelessWidget {
           Icon(icon, size: 16, color: n.accent),
           const SizedBox(width: 8),
         ],
-        Flexible(child: Text(title, style: n.text.subheading)),
+        Flexible(child: Text(tr(title), style: n.text.subheading)),
         if (changed) ...[const SizedBox(width: 8), _dot(n)],
         if (trailing != null) ...[const Spacer(), trailing!],
       ],
@@ -91,7 +92,7 @@ class Kicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = context.nocturne;
     return Text(
-      text.toUpperCase(),
+      tr(text.toUpperCase()),
       style: n.text.kicker.copyWith(
         color: accent ? n.accent : n.textMuted,
         letterSpacing: accent ? 1.0 : 0.8,

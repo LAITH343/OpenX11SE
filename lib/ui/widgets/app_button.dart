@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 import 'pressable.dart';
 
@@ -101,7 +102,7 @@ class AppButton extends StatelessWidget {
                   if (icon != null) ...[Icon(icon), const SizedBox(width: 6)],
                   Flexible(
                     child: Text(
-                      label,
+                      tr(label),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

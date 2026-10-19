@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/button_assignment.dart';
 import '../lighting/mouse_led.dart';
@@ -88,7 +89,7 @@ class MouseIllustration extends StatelessWidget {
                 child: EntranceTransition(
                   kind: Entrance.fade,
                   child: Text(
-                    '6 · DPI button is on the underside',
+                    tr('6 · DPI button is on the underside'),
                     textAlign: TextAlign.center,
                     style: n.text.micro.copyWith(
                       fontSize: 10.5,

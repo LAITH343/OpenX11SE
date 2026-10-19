@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_palette.dart';
 import '../../core/theme/nocturne_theme.dart';
 
@@ -9,11 +10,13 @@ class AppearanceViewModel extends ChangeNotifier {
   }
 
   ThemeMode _themeMode;
+  AppLanguage _language = AppStrings.language;
   Color? _accentOverride;
   late ThemeData _light;
   late ThemeData _dark;
 
   ThemeMode get themeMode => _themeMode;
+  AppLanguage get language => _language;
   Color? get accentOverride => _accentOverride;
   ThemeData get lightTheme => _light;
   ThemeData get darkTheme => _dark;
@@ -21,6 +24,13 @@ class AppearanceViewModel extends ChangeNotifier {
   set themeMode(ThemeMode mode) {
     if (mode == _themeMode) return;
     _themeMode = mode;
+    notifyListeners();
+  }
+
+  set language(AppLanguage value) {
+    if (value == _language) return;
+    _language = value;
+    AppStrings.language = value;
     notifyListeners();
   }
 

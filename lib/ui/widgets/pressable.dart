@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 
 typedef PressableBuilder =
@@ -135,7 +136,7 @@ class _PressableState extends State<Pressable> {
 
     final tip = widget.tooltip;
     if (tip != null && tip.isNotEmpty) {
-      child = Tooltip(message: tip, child: child);
+      child = Tooltip(message: tr(tip), child: child);
     }
     return child;
   }

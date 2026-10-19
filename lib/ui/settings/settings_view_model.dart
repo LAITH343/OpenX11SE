@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/system/system_integration.dart';
@@ -100,6 +101,11 @@ class SettingsViewModel extends ChangeNotifier {
   Future<void> setTheme(AppTheme theme) =>
       _update((s) => s.copyWith(theme: theme));
 
+  AppLanguage get language => AppLanguage.fromCode(_settings.language);
+
+  Future<void> setLanguage(AppLanguage language) =>
+      _update((s) => s.copyWith(language: language.code));
+
   Future<void> setAccentFollowsStage(bool value) =>
       _update((s) => s.copyWith(accentFollowsStage: value));
 
@@ -154,6 +160,7 @@ class SettingsViewModel extends ChangeNotifier {
       AppTheme.light => ThemeMode.light,
       AppTheme.system => ThemeMode.system,
     };
+    _appearance.language = AppLanguage.fromCode(_settings.language);
     _syncAccent();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_palette.dart';
 import '../../core/theme/nocturne_theme.dart';
@@ -36,10 +37,15 @@ class StartupFailureApp extends StatelessWidget {
                         size: 32,
                         color: n.palette.warning,
                       ),
-                      Text('OpenX11SE could not start', style: n.text.display),
                       Text(
-                        'Local storage could not be opened. Close other '
-                        'OpenX11SE windows or tabs and start it again.',
+                        tr('OpenX11SE could not start'),
+                        style: n.text.display,
+                      ),
+                      Text(
+                        tr(
+                          'Local storage could not be opened. Close other '
+                          'OpenX11SE windows or tabs and start it again.',
+                        ),
                         style: n.text.body.copyWith(color: n.textSecondary),
                       ),
                       SelectableText(

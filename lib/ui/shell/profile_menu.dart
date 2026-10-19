@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../widgets/motion.dart';
@@ -36,6 +37,7 @@ class ProfileMenuLayer extends StatelessWidget {
     final open = context.select<ShellViewModel, bool>((s) => s.profileMenuOpen);
     if (!open) return const SizedBox.shrink();
     final shell = context.read<ShellViewModel>();
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return Positioned.fill(
       child: Stack(
         children: [
@@ -47,9 +49,9 @@ class ProfileMenuLayer extends StatelessWidget {
           ),
           CompositedTransformFollower(
             link: ProfileMenuAnchor.of(context),
-            targetAnchor: Alignment.topLeft,
-            followerAnchor: Alignment.bottomLeft,
-            offset: const Offset(-6, -12),
+            targetAnchor: rtl ? Alignment.topRight : Alignment.topLeft,
+            followerAnchor: rtl ? Alignment.bottomRight : Alignment.bottomLeft,
+            offset: Offset(rtl ? 6 : -6, -12),
             child: const EntranceTransition(
               kind: Entrance.pop,
               duration: Duration(milliseconds: 180),
@@ -140,7 +142,7 @@ class _ProfileMenu extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
               child: Text(
-                'PROFILES ON THIS COMPUTER',
+                tr('PROFILES ON THIS COMPUTER'),
                 style: n.text.kicker.copyWith(color: n.textMuted),
               ),
             ),
@@ -161,7 +163,7 @@ class _ProfileMenu extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        profile.name,
+                        tr(profile.name),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: n.text.small,
@@ -220,7 +222,7 @@ class _ActionItem extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              action.label,
+              tr(action.label),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: n.text.caption.copyWith(fontSize: 12.5, color: fg),

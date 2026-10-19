@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/macro.dart';
@@ -76,7 +77,7 @@ class _AssignDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: 10,
           children: [
-            Text('Button', style: label),
+            Text(tr('Button'), style: label),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SegmentedControl<int>(
@@ -93,7 +94,7 @@ class _AssignDialog extends StatelessWidget {
               ),
             ),
             Text(
-              'Replaces ${vm.currentLabel(assign.slot)}',
+              tr('Replaces ${vm.currentLabel(assign.slot)}'),
               style: n.text.caption.copyWith(color: n.textSecondary),
             ),
             if (vm.assignLeftWarning)
@@ -103,8 +104,10 @@ class _AssignDialog extends StatelessWidget {
                   Icon(AppIcons.warning, size: 14, color: n.palette.warning),
                   Expanded(
                     child: Text(
-                      "No other button is Left click — you'd lose the ability "
-                      'to click.',
+                      tr(
+                        "No other button is Left click — you'd lose the ability "
+                        'to click.',
+                      ),
                       style: n.text.caption.copyWith(color: n.palette.warning),
                     ),
                   ),
@@ -112,7 +115,7 @@ class _AssignDialog extends StatelessWidget {
               ),
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text('Playback', style: label),
+              child: Text(tr('Playback'), style: label),
             ),
             for (final mode in MacroPlaybackMode.values)
               Row(
@@ -122,7 +125,7 @@ class _AssignDialog extends StatelessWidget {
                     value: mode,
                     groupValue: assign.playback.mode,
                     onChanged: vm.setAssignMode,
-                    label: Text(_modeLabel(mode)),
+                    label: Text(tr(_modeLabel(mode))),
                   ),
                   if (mode == MacroPlaybackMode.once) ...[
                     NumberField(
@@ -134,7 +137,7 @@ class _AssignDialog extends StatelessWidget {
                       onChanged: vm.setAssignLoopCount,
                     ),
                     Text(
-                      'times',
+                      tr('times'),
                       style: n.text.caption.copyWith(
                         color: n.textColor.withValues(alpha: 0.6),
                       ),

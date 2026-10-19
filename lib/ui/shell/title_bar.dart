@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_palette.dart';
 import '../../core/theme/nocturne_theme.dart';
@@ -34,12 +35,12 @@ class TitleBar extends StatelessWidget {
                   children: [
                     const AppMark(size: 15),
                     const SizedBox(width: 8),
-                    Text('OpenX11SE', style: style),
+                    Text(tr('OpenX11SE'), style: style),
                     if (profileName.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          '— $profileName',
+                          tr('— $profileName'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: style.copyWith(

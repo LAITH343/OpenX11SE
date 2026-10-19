@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' hide TextInput;
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../data/protocol/macro_report.dart';
@@ -82,13 +83,13 @@ class _NoSelection extends StatelessWidget {
       child: Text.rich(
         TextSpan(
           style: style,
-          children: const [
-            TextSpan(text: 'No macro selected. Create one with '),
+          children: [
+            TextSpan(text: tr('No macro selected. Create one with ')),
             TextSpan(
-              text: '+',
-              style: TextStyle(fontWeight: FontWeight.w500),
+              text: tr('+'),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
-            TextSpan(text: '.'),
+            TextSpan(text: tr('.')),
           ],
         ),
       ),
@@ -182,7 +183,7 @@ class _MacroListState extends State<_MacroList> {
                   vertical: 10,
                 ),
                 child: Text(
-                  'No macros match.',
+                  tr('No macros match.'),
                   style: n.text.caption.copyWith(
                     fontSize: 12.5,
                     color: n.textColor.withValues(alpha: 0.58),
@@ -249,7 +250,7 @@ class _MacroListTile extends StatelessWidget {
                 spacing: 2,
                 children: [
                   Text(
-                    item.name,
+                    tr(item.name),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: n.text.row.copyWith(
@@ -257,7 +258,7 @@ class _MacroListTile extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    item.meta,
+                    tr(item.meta),
                     style: n.text.tabular(
                       n.text.micro.copyWith(color: n.textMuted),
                     ),
@@ -269,7 +270,7 @@ class _MacroListTile extends StatelessWidget {
                         Icon(AppIcons.linkSimple, size: 11, color: p.a(300)),
                         Flexible(
                           child: Text(
-                            item.assignedTo.join(', '),
+                            tr(item.assignedTo.join(', ')),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: n.text.micro.copyWith(color: p.a(300)),
@@ -364,7 +365,7 @@ class _EditorHeaderState extends State<_EditorHeader> {
           Flexible(
             flex: 2,
             child: Tooltip(
-              message: 'Assigned to ${assigned.join(', ')}',
+              message: tr('Assigned to ${assigned.join(', ')}'),
               child: Tag(
                 label: assigned.join(', '),
                 variant: TagVariant.neutral,
@@ -449,8 +450,10 @@ class _RecordBar extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Recording — press keys · '
-                        '${editor.rows.length} events',
+                        tr(
+                          'Recording — press keys · '
+                          '${editor.rows.length} events',
+                        ),
                         style: n.text.small,
                       ),
                     ],
@@ -463,7 +466,7 @@ class _RecordBar extends StatelessWidget {
             spacing: 12,
             children: [
               Text(
-                'Delays while recording',
+                tr('Delays while recording'),
                 style: n.text.caption.copyWith(color: n.textSecondary),
               ),
               SegmentedControl<RecordDelayMode>(
@@ -579,10 +582,10 @@ class _EventTable extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
           child: _RowLayout(
-            number: Text('#', style: head),
-            key_: Text('KEY', style: head),
-            action: Text('ACTION', style: head),
-            delay: Text('DELAY AFTER', style: head),
+            number: Text(tr('#'), style: head),
+            key_: Text(tr('KEY'), style: head),
+            action: Text(tr('ACTION'), style: head),
+            delay: Text(tr('DELAY AFTER'), style: head),
             tools: const SizedBox.shrink(),
           ),
         ),
@@ -590,7 +593,9 @@ class _EventTable extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
             child: Text(
-              'No events yet. Press Record and type, or insert actions below.',
+              tr(
+                'No events yet. Press Record and type, or insert actions below.',
+              ),
               style: n.text.small.copyWith(
                 color: n.textColor.withValues(alpha: 0.6),
               ),
@@ -685,14 +690,14 @@ class _EventRow extends StatelessWidget {
           child: MouseRegion(
             cursor: SystemMouseCursors.grab,
             child: Tooltip(
-              message: 'Drag to reorder',
+              message: tr('Drag to reorder'),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 spacing: 2,
                 children: [
                   Icon(AppIcons.dotsSixVertical, size: 13, color: muted),
                   Text(
-                    '${index + 1}',
+                    tr('${index + 1}'),
                     style: n.text.tabular(
                       n.text.caption.copyWith(color: muted),
                     ),
@@ -715,7 +720,7 @@ class _EventRow extends StatelessWidget {
                       color: n.textColor.withValues(alpha: 0.7),
                     ),
                     Text(
-                      'Wait',
+                      tr('Wait'),
                       style: n.text.small.copyWith(
                         color: n.textColor.withValues(alpha: 0.7),
                       ),
@@ -732,7 +737,7 @@ class _EventRow extends StatelessWidget {
               ),
         action: e.isDelay
             ? Text(
-                '—',
+                tr('—'),
                 style: n.text.caption.copyWith(
                   color: n.textColor.withValues(alpha: 0.5),
                 ),
@@ -758,9 +763,9 @@ class _EventRow extends StatelessWidget {
             ),
             if (extended)
               Tooltip(
-                message: 'Long delays use an extra step',
+                message: tr('Long delays use an extra step'),
                 child: Text(
-                  '+1 step',
+                  tr('+1 step'),
                   style: n.text.micro.copyWith(
                     fontSize: 10.5,
                     color: p.warning,
@@ -847,7 +852,7 @@ class _KeyCell extends StatelessWidget {
     final p = n.palette;
     final mouse = event.kind == MacroEventKind.mouse;
     final label = Text(
-      capturing ? 'Press a key…' : macroEventLabel(event),
+      tr(capturing ? 'Press a key…' : macroEventLabel(event)),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: n.text.small,
@@ -920,7 +925,7 @@ class _ActionChip extends StatelessWidget {
               color: fg,
             ),
             Text(
-              press ? 'Press' : 'Release',
+              tr(press ? 'Press' : 'Release'),
               style: n.text.caption.copyWith(color: fg),
             ),
           ],
@@ -972,7 +977,7 @@ class _InsertBar extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: Text(
-                  'Insert',
+                  tr('Insert'),
                   style: n.text.caption.copyWith(
                     color: n.textColor.withValues(alpha: 0.6),
                   ),
@@ -1083,7 +1088,7 @@ class _EditorFooter extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    text,
+                    tr(text),
                     style: n.text.tabular(
                       n.text.caption.copyWith(color: color),
                     ),

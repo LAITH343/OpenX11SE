@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 
 import '../../core/formatting/color_hex.dart';
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_palette.dart';
 import '../../core/theme/nocturne_theme.dart';
 import 'app_button.dart';
@@ -189,7 +190,7 @@ class _CustomColourDialogState extends State<_CustomColourDialog> {
                 ),
               ),
               const SizedBox(width: 10),
-              Text(formatHexColor(color), style: n.text.mono),
+              Text(tr(formatHexColor(color)), style: n.text.mono),
             ],
           ),
         ],

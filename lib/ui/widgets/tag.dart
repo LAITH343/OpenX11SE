@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 
 enum TagVariant { accent, neutral, outline }
@@ -45,7 +46,7 @@ class Tag extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           Text(
-            label,
+            tr(label),
             style: (compact ? n.text.kicker : n.text.micro).copyWith(
               color: fg,
               letterSpacing: 0.22,

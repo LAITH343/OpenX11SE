@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'nocturne_palette.dart';
 
 const String fontFamily = 'Inter';
-const List<String> fontFallback = ['Segoe UI', 'system-ui', 'sans-serif'];
+const List<String> fontFallback = [
+  'IBM Plex Sans Arabic',
+  'Segoe UI',
+  'system-ui',
+  'sans-serif',
+];
 const List<String> monoFamilyFallback = ['Consolas', 'Menlo', 'monospace'];
 
 @immutable

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 import 'pressable.dart';
 import 'tag.dart';
@@ -98,7 +99,7 @@ class ToggleRow extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Flexible(child: Text(title, style: n.text.row)),
+                    Flexible(child: Text(tr(title), style: n.text.row)),
                     if (changed) ...[
                       const SizedBox(width: 6),
                       const ChangedDot(size: 5),
@@ -107,7 +108,7 @@ class ToggleRow extends StatelessWidget {
                 ),
                 if (description != null)
                   Text(
-                    description!,
+                    tr(description!),
                     style: n.text.caption.copyWith(color: n.textSecondary),
                   ),
               ],

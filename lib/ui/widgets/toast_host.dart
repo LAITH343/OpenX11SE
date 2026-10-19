@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import 'app_button.dart';
@@ -99,8 +100,8 @@ class ToastHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      right: 16,
+    return PositionedDirectional(
+      end: 16,
       bottom: 72,
       child: Semantics(
         liveRegion: true,
@@ -166,7 +167,7 @@ class _ToastCard extends StatelessWidget {
           children: [
             Icon(toast.icon ?? fallback, size: 18, color: color),
             const SizedBox(width: 10),
-            Flexible(child: Text(toast.text, style: n.text.small)),
+            Flexible(child: Text(tr(toast.text), style: n.text.small)),
             if (onAction != null) ...[
               const SizedBox(width: 10),
               AppButton(

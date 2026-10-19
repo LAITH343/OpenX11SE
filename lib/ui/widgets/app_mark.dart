@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 
 class AppMark extends StatelessWidget {
@@ -11,7 +12,7 @@ class AppMark extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = context.nocturne.accent;
     return Tooltip(
-      message: 'OpenX11SE',
+      message: tr('OpenX11SE'),
       child: Container(
         width: size,
         height: size,

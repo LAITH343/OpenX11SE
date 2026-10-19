@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../shell/app_section.dart';
@@ -49,18 +50,19 @@ class _NoLeftClickBanner extends StatelessWidget {
     return StatusBanner(
       kind: BannerKind.warning,
       icon: AppIcons.warning,
-      message: const Text.rich(
+      message: Text.rich(
         TextSpan(
           children: [
-            TextSpan(text: 'No button is set to '),
+            TextSpan(text: tr('No button is set to ')),
             TextSpan(
-              text: 'Left click',
-              style: TextStyle(fontWeight: FontWeight.w500),
+              text: tr('Left click'),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
             TextSpan(
-              text:
-                  ". After applying you won't be able to click with this "
-                  'mouse.',
+              text: tr(
+                ". After applying you won't be able to click with this "
+                'mouse.',
+              ),
             ),
           ],
         ),
@@ -118,7 +120,7 @@ class _ButtonList extends StatelessWidget {
                         color: n.textLabel,
                       ),
                       Text(
-                        'Advanced · DPI button and wheel',
+                        tr('Advanced · DPI button and wheel'),
                         style: n.text.caption.copyWith(
                           fontSize: 12.5,
                           color: n.textLabel,
@@ -206,7 +208,7 @@ class _ButtonRowTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    row.info.title,
+                    tr(row.info.title),
                     style: n.text.caption.copyWith(
                       color: n.textColor.withValues(alpha: 0.6),
                     ),
@@ -221,7 +223,7 @@ class _ButtonRowTile extends StatelessWidget {
                       ),
                       Flexible(
                         child: Text(
-                          row.label,
+                          tr(row.label),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           softWrap: false,
@@ -234,9 +236,9 @@ class _ButtonRowTile extends StatelessWidget {
               ),
             ),
             if (row.changed)
-              const Tooltip(
-                message: 'Changed — not applied yet',
-                child: ChangedDot(),
+              Tooltip(
+                message: tr('Changed — not applied yet'),
+                child: const ChangedDot(),
               ),
             if (row.custom)
               AppIconButton(

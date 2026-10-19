@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/nocturne_theme.dart';
 
 class TextInput extends StatelessWidget {
@@ -74,7 +75,7 @@ class TextInput extends StatelessWidget {
         ...?inputFormatters,
       ],
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: hint == null ? null : tr(hint!),
         contentPadding: dense
             ? const EdgeInsets.symmetric(horizontal: 8, vertical: 7)
             : null,
@@ -96,7 +97,7 @@ class TextInput extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label!, style: n.text.caption.copyWith(color: n.textLabel)),
+        Text(tr(label!), style: n.text.caption.copyWith(color: n.textLabel)),
         const SizedBox(height: 5),
         sized,
       ],

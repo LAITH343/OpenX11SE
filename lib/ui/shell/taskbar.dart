@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/app_settings.dart';
@@ -111,7 +112,7 @@ class _ProfileButton extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PROFILE',
+                        tr('PROFILE'),
                         style: n.text.kicker.copyWith(
                           height: 1.15,
                           color: n.textSecondary,
@@ -120,7 +121,7 @@ class _ProfileButton extends StatelessWidget {
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 150),
                         child: Text(
-                          shell.profileName,
+                          tr(shell.profileName),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: n.text.small.copyWith(height: 1.15),
@@ -227,7 +228,7 @@ class _NavItem extends StatelessWidget {
                       kind: Entrance.fade,
                       duration: const Duration(milliseconds: 250),
                       child: Text(
-                        section.label,
+                        tr(section.label),
                         maxLines: 1,
                         softWrap: false,
                         style: n.text.small.copyWith(color: fg),
@@ -244,12 +245,12 @@ class _NavItem extends StatelessWidget {
                   child: _Underline(),
                 ),
               if (changed)
-                const Positioned(
-                  right: -6,
+                PositionedDirectional(
+                  end: -6,
                   top: 6,
                   child: Tooltip(
-                    message: 'Unsaved changes',
-                    child: ChangedDot(size: 5),
+                    message: tr('Unsaved changes'),
+                    child: const ChangedDot(size: 5),
                   ),
                 ),
             ],
@@ -310,9 +311,9 @@ class _Status extends StatelessWidget {
         children: [
           const _ThemeToggle(),
           if (edit.autoApply && !edit.writing)
-            const Tooltip(
-              message: 'Changes are written automatically — see Settings',
-              child: Tag(
+            Tooltip(
+              message: tr('Changes are written automatically — see Settings'),
+              child: const Tag(
                 label: 'Auto-apply',
                 variant: TagVariant.neutral,
                 icon: AppIcons.lightning,
@@ -322,7 +323,7 @@ class _Status extends StatelessWidget {
           if (synced)
             Flexible(
               child: Tooltip(
-                message: 'Everything is written to the mouse',
+                message: tr('Everything is written to the mouse'),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Row(
@@ -336,7 +337,7 @@ class _Status extends StatelessWidget {
                       ),
                       Flexible(
                         child: Text(
-                          'Synced',
+                          tr('Synced'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: muted,
@@ -352,7 +353,7 @@ class _Status extends StatelessWidget {
               child: EntranceTransition(
                 kind: Entrance.fade,
                 child: Tooltip(
-                  message: compact ? pendingText : '',
+                  message: tr(compact ? pendingText : ''),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Row(
@@ -363,7 +364,7 @@ class _Status extends StatelessWidget {
                         if (!compact)
                           Flexible(
                             child: Text(
-                              pendingText,
+                              tr(pendingText),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: muted.copyWith(color: n.palette.a(300)),
@@ -416,7 +417,7 @@ class _Status extends StatelessWidget {
                     const Spinner(size: 16),
                     Flexible(
                       child: Text(
-                        'Writing ${edit.writeLabel}…',
+                        tr('Writing ${edit.writeLabel}…'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: muted,

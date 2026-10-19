@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' hide TextInput;
 import 'package:provider/provider.dart';
 
 import '../../core/formatting/number_format.dart';
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/dpi_settings.dart';
@@ -49,7 +50,7 @@ class PerformanceSection extends StatelessWidget {
         SectionHeader(
           title: section.label,
           trailing: Text(
-            '${vm.enabledCount} of ${DpiSettings.stageCount} enabled',
+            tr('${vm.enabledCount} of ${DpiSettings.stageCount} enabled'),
             style: n.text.tabular(
               n.text.caption.copyWith(color: n.textSecondary),
             ),
@@ -214,7 +215,7 @@ class _StageColumnState extends State<_StageColumn>
                 spacing: 5,
                 children: [
                   Text(
-                    'S${widget.index + 1}',
+                    tr('S${widget.index + 1}'),
                     maxLines: 1,
                     softWrap: false,
                     style: n.text.kicker.copyWith(
@@ -226,7 +227,7 @@ class _StageColumnState extends State<_StageColumn>
                   Expanded(
                     child: widget.active
                         ? Text(
-                            'ACTIVE',
+                            tr('ACTIVE'),
                             maxLines: 1,
                             softWrap: false,
                             overflow: TextOverflow.fade,
@@ -240,9 +241,9 @@ class _StageColumnState extends State<_StageColumn>
                         : const SizedBox.shrink(),
                   ),
                   if (widget.changed)
-                    const Tooltip(
-                      message: 'Changed — not applied yet',
-                      child: ChangedDot(size: 5),
+                    Tooltip(
+                      message: tr('Changed — not applied yet'),
+                      child: const ChangedDot(size: 5),
                     ),
                 ],
               ),
@@ -253,7 +254,7 @@ class _StageColumnState extends State<_StageColumn>
                   fit: BoxFit.scaleDown,
                   alignment: AlignmentDirectional.centerStart,
                   child: Text(
-                    formatThousands(stage.dpi),
+                    tr(formatThousands(stage.dpi)),
                     maxLines: 1,
                     style: n.text.tabular(
                       n.text.subheading.copyWith(height: 1.2),
@@ -423,7 +424,7 @@ class _DpiEditor extends StatelessWidget {
                 boxShadow: [BoxShadow(color: color, blurRadius: 10)],
               ),
             ),
-            Text('Stage ${index + 1}', style: n.text.heading),
+            Text(tr('Stage ${index + 1}'), style: n.text.heading),
             if (active) const Tag(label: 'Active'),
             if (!stage.enabled)
               const Tag(label: 'Disabled', variant: TagVariant.neutral),
@@ -439,7 +440,7 @@ class _DpiEditor extends StatelessWidget {
               spacing: 8,
               children: [
                 Text(
-                  'Enabled',
+                  tr('Enabled'),
                   style: n.text.caption.copyWith(color: n.textLabel),
                 ),
                 AppSwitch(
@@ -476,7 +477,7 @@ class _DpiEditor extends StatelessWidget {
                 children: [
                   Icon(AppIcons.magnet, size: 13, color: p.a(300)),
                   Text(
-                    vm.snapNote!,
+                    tr(vm.snapNote!),
                     style: n.text.caption.copyWith(color: p.a(300)),
                   ),
                 ],
@@ -521,7 +522,12 @@ class _DpiTicks extends StatelessWidget {
   const _DpiTicks();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Directionality(
+    textDirection: TextDirection.ltr,
+    child: Builder(builder: _build),
+  );
+
+  Widget _build(BuildContext context) {
     final n = context.nocturne;
     final style = n.text.tabular(
       n.text.micro.copyWith(fontSize: 10.5, color: n.textMuted),
@@ -547,7 +553,7 @@ class _DpiTicks extends StatelessWidget {
                         : -0.5,
                     0,
                   ),
-                  child: Text(_tickLabel(ticks[k]), style: style),
+                  child: Text(tr(_tickLabel(ticks[k])), style: style),
                 ),
               ),
           ],
@@ -656,7 +662,7 @@ class _StageColour extends StatelessWidget {
       spacing: 10,
       children: [
         Text(
-          'Stage colour',
+          tr('Stage colour'),
           style: n.text.caption.copyWith(color: n.textLabel),
         ),
         ColourPicker(

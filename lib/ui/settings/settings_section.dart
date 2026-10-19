@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/app_settings.dart';
@@ -13,7 +14,6 @@ import '../widgets/pressable.dart';
 import '../widgets/section_header.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/surface_card.dart';
-import '../widgets/tag.dart';
 import '../widgets/toggle.dart';
 import 'settings_view_model.dart';
 import 'update_view_model.dart';
@@ -69,10 +69,9 @@ class _RowsCard extends StatelessWidget {
 }
 
 class _SettingRow extends StatelessWidget {
-  const _SettingRow({required this.title, required this.trailing, this.badge});
+  const _SettingRow({required this.title, required this.trailing});
 
   final String title;
-  final Widget? badge;
   final Widget trailing;
 
   @override
@@ -86,14 +85,7 @@ class _SettingRow extends StatelessWidget {
       children: [
         ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 200, maxWidth: 420),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 8,
-            children: [
-              Text(title, style: n.text.row),
-              ?badge,
-            ],
-          ),
+          child: Text(tr(title), style: n.text.row),
         ),
         trailing,
       ],
@@ -144,15 +136,7 @@ class _AppearanceCard extends StatelessWidget {
             onChanged: (v) => unawaited(vm.setAccentFollowsStage(v)),
           ),
         ),
-        const _SettingRow(
-          title: 'Language',
-          badge: Tag(
-            label: 'Coming soon',
-            variant: TagVariant.neutral,
-            compact: true,
-          ),
-          trailing: _LanguageField(),
-        ),
+        const _SettingRow(title: 'Language', trailing: _LanguageField()),
       ],
     );
   }
@@ -164,22 +148,65 @@ class _LanguageField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = context.nocturne;
-    return Opacity(
-      opacity: 0.6,
-      child: Container(
-        width: 180,
-        height: 34,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: n.palette.bg,
-          borderRadius: n.radius.mdAll,
-          border: Border.all(color: n.divider),
+    final vm = context.watch<SettingsViewModel>();
+    return MenuAnchor(
+      alignmentOffset: const Offset(0, 4),
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(n.surface),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+        minimumSize: const WidgetStatePropertyAll(Size(180, 0)),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: n.radius.mdAll,
+            side: BorderSide(color: n.divider),
+          ),
         ),
-        child: Row(
-          children: [
-            Expanded(child: Text('English', style: n.text.small)),
-            Icon(AppIcons.caretDown, size: 12, color: n.textMuted),
-          ],
+      ),
+      menuChildren: [
+        for (final language in AppLanguage.values)
+          MenuItemButton(
+            onPressed: () => unawaited(vm.setLanguage(language)),
+            style: ButtonStyle(
+              minimumSize: const WidgetStatePropertyAll(Size(172, 34)),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(borderRadius: n.radius.smAll),
+              ),
+            ),
+            leadingIcon: SizedBox(
+              width: 14,
+              child: language == vm.language
+                  ? Icon(AppIcons.check, size: 14, color: n.accent)
+                  : null,
+            ),
+            child: Text(language.nativeName, style: n.text.small),
+          ),
+      ],
+      builder: (context, controller, _) => Pressable(
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+        semanticLabel: tr('Language'),
+        builder: (context, states) => AnimatedContainer(
+          duration: n.motion.fast,
+          width: 180,
+          height: 34,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: n.surface,
+            borderRadius: n.radius.mdAll,
+            border: Border.all(
+              color: states.contains(WidgetState.hovered)
+                  ? n.textColor.withValues(alpha: 0.45)
+                  : n.divider,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(vm.language.nativeName, style: n.text.small),
+              ),
+              Icon(AppIcons.caretDown, size: 12, color: n.textMuted),
+            ],
+          ),
         ),
       ),
     );
@@ -236,12 +263,12 @@ class _InfoLine extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            label,
+            tr(label),
             style: n.text.small.copyWith(color: n.textSecondary),
           ),
         ),
         Text(
-          value,
+          tr(value),
           style: n.text.small.copyWith(
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
@@ -263,7 +290,7 @@ class _DeviceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 10,
         children: [
-          Text('Device', style: n.text.subheading),
+          Text(tr('Device'), style: n.text.subheading),
           for (final row in vm.deviceInfo) _InfoLine(row.label, row.value),
           AppButton(
             label: 'Restore mouse to factory defaults',
@@ -289,12 +316,12 @@ class _AboutCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 10,
         children: [
-          Text('About', style: n.text.subheading),
+          Text(tr('About'), style: n.text.subheading),
           _InfoLine('OpenX11SE', vm.appVersion),
           _InfoLine('Build', vm.buildText),
           const _UpdateRow(),
           Text(
-            '${vm.platformNote} Not affiliated with Attack Shark.',
+            tr('${vm.platformNote} Not affiliated with Attack Shark.'),
             style: n.text.caption.copyWith(color: n.textSecondary),
           ),
           Row(
@@ -334,7 +361,7 @@ class _Link extends StatelessWidget {
     return Pressable(
       onPressed: onPressed,
       builder: (context, states) => Text(
-        label,
+        tr(label),
         style: n.text.small.copyWith(
           color: n.accent,
           decoration: states.contains(WidgetState.hovered)
@@ -382,7 +409,7 @@ class _UpdateRow extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            vm.statusText,
+            tr(vm.statusText),
             style: n.text.small.copyWith(
               color: failed ? n.palette.danger : n.textSecondary,
             ),

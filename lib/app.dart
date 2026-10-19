@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'core/l10n/strings.dart';
 import 'ui/debug/device_debug_screen.dart';
 import 'ui/gallery/widget_gallery.dart';
 import 'ui/shell/app_shell.dart';
@@ -23,13 +25,19 @@ class OpenX11SeApp extends StatelessWidget {
       theme: appearance.lightTheme,
       darkTheme: appearance.darkTheme,
       themeMode: appearance.themeMode,
+      locale: appearance.language.locale,
+      supportedLocales: [for (final l in AppLanguage.values) l.locale],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (context, child) =>
           MinimumSizeViewport(child: child ?? const SizedBox.shrink()),
-      home: showDeviceDiagnostics
-          ? const DeviceDebugScreen()
-          : showWidgetGallery
-          ? const WidgetGallery()
-          : const AppShell(),
+      home: KeyedSubtree(
+        key: ValueKey(appearance.language),
+        child: showDeviceDiagnostics
+            ? const DeviceDebugScreen()
+            : showWidgetGallery
+            ? const WidgetGallery()
+            : const AppShell(),
+      ),
     );
   }
 }

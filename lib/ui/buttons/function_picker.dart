@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' hide TextInput;
 import 'package:provider/provider.dart';
 
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_palette.dart';
 import '../../core/theme/nocturne_theme.dart';
@@ -162,14 +163,14 @@ class _PickerHeaderState extends State<_PickerHeader> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Assign a function to',
+                  tr('Assign a function to'),
                   style: n.text.micro.copyWith(
                     fontSize: 11.5,
                     color: n.textColor.withValues(alpha: 0.6),
                   ),
                 ),
                 Text(
-                  vm.name,
+                  tr(vm.name),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: n.text.heading.copyWith(height: 1.3),
@@ -269,7 +270,7 @@ class _GroupTile extends StatelessWidget {
               Icon(group.icon, size: 16, color: fg),
               Expanded(
                 child: Text(
-                  group.label,
+                  tr(group.label),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: n.text.small.copyWith(color: fg),
@@ -293,7 +294,7 @@ class _PickerBody extends StatelessWidget {
     final Widget content;
     if (vm.noResults) {
       content = Text(
-        'No functions match. For any other key, use the Keyboard group.',
+        tr('No functions match. For any other key, use the Keyboard group.'),
         style: n.text.small.copyWith(color: n.textColor.withValues(alpha: 0.6)),
       );
     } else if (vm.showKeyboard) {
@@ -410,10 +411,10 @@ class _FunctionTileState extends State<_FunctionTile> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 2,
             children: [
-              Text(item.label, style: n.text.small),
+              Text(tr(item.label), style: n.text.small),
               if (item.hint.isNotEmpty)
                 Text(
-                  item.hint,
+                  tr(item.hint),
                   style: n.text.micro.copyWith(
                     color: n.textColor.withValues(alpha: 0.55),
                   ),
@@ -453,9 +454,9 @@ class _KeyboardPane extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 12,
         children: [
-          Text('Key', style: label),
+          Text(tr('Key'), style: label),
           const _KeyCapture(),
-          Text('Modifiers', style: label),
+          Text(tr('Modifiers'), style: label),
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -528,7 +529,7 @@ class _KeyCaptureState extends State<_KeyCapture> {
       (vm) => vm.capturedKeyLabel,
     );
     final prompt = Text(
-      _focused ? 'Press any key…' : 'Click here, then press a key',
+      tr(_focused ? 'Press any key…' : 'Click here, then press a key'),
       style: n.text.body.copyWith(color: n.textColor.withValues(alpha: 0.6)),
     );
     return Focus(
@@ -594,7 +595,7 @@ class _KeyCap extends StatelessWidget {
             BoxShadow(color: p.n(600), spreadRadius: 1),
           ],
         ),
-        child: Text(label, style: n.text.heading.copyWith(height: 1)),
+        child: Text(tr(label), style: n.text.heading.copyWith(height: 1)),
       ),
     );
   }
@@ -616,8 +617,10 @@ class _MacroPane extends StatelessWidget {
           Icon(AppIcons.info, size: 16, color: muted),
           Expanded(
             child: Text(
-              'Macros can only be assigned to Left, Right, Middle, Forward and '
-              'Back.',
+              tr(
+                'Macros can only be assigned to Left, Right, Middle, Forward and '
+                'Back.',
+              ),
               style: n.text.small.copyWith(color: muted),
             ),
           ),
@@ -630,11 +633,13 @@ class _MacroPane extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 12,
         children: [
-          Text('Macro', style: label),
+          Text(tr('Macro'), style: label),
           if (vm.macros.isEmpty)
             Text(
-              'No macros yet. Record one in the Macros section, then assign it '
-              'here.',
+              tr(
+                'No macros yet. Record one in the Macros section, then assign it '
+                'here.',
+              ),
               style: n.text.small.copyWith(color: muted),
             )
           else
@@ -648,9 +653,9 @@ class _MacroPane extends StatelessWidget {
                     groupValue: vm.macroId,
                     filled: true,
                     onChanged: (id) => vm.selectMacro(id!),
-                    label: Text(m.name),
+                    label: Text(tr(m.name)),
                     trailing: Text(
-                      '${FunctionPickerViewModel.macroSteps(m)} steps',
+                      tr('${FunctionPickerViewModel.macroSteps(m)} steps'),
                       style: n.text.micro.copyWith(
                         fontSize: 11.5,
                         color: n.textColor.withValues(alpha: 0.55),
@@ -662,7 +667,7 @@ class _MacroPane extends StatelessWidget {
           if (vm.macros.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text('Playback', style: label),
+              child: Text(tr('Playback'), style: label),
             ),
             for (final mode in MacroPlaybackMode.values)
               Row(
@@ -672,12 +677,12 @@ class _MacroPane extends StatelessWidget {
                     value: mode,
                     groupValue: vm.mode,
                     onChanged: vm.setMode,
-                    label: Text(_modeLabel(mode)),
+                    label: Text(tr(_modeLabel(mode))),
                   ),
                   if (mode == MacroPlaybackMode.once) ...[
                     _LoopCountField(count: vm.loopCount),
                     Text(
-                      'times',
+                      tr('times'),
                       style: n.text.caption.copyWith(
                         color: n.textColor.withValues(alpha: 0.6),
                       ),
@@ -694,7 +699,7 @@ class _MacroPane extends StatelessWidget {
                 context.read<ShellViewModel>().selectSection(AppSection.macros);
               },
               builder: (context, states) => Text(
-                'Create or edit macros',
+                tr('Create or edit macros'),
                 style: n.text.caption.copyWith(
                   fontSize: 12.5,
                   color: n.palette.a(300),
@@ -795,7 +800,7 @@ class _PickerFooter extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  vm.currentLabel,
+                  tr(vm.currentLabel),
                   style: n.text.caption.copyWith(
                     fontSize: 12.5,
                     color: n.textColor.withValues(alpha: 0.6),
@@ -806,7 +811,10 @@ class _PickerFooter extends StatelessWidget {
                   size: 14,
                   color: n.textColor.withValues(alpha: 0.5),
                 ),
-                Text(vm.nextLabel, style: n.text.row.copyWith(color: p.a(300))),
+                Text(
+                  tr(vm.nextLabel),
+                  style: n.text.row.copyWith(color: p.a(300)),
+                ),
                 if (vm.leftClickWarning)
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -814,7 +822,7 @@ class _PickerFooter extends StatelessWidget {
                     children: [
                       Icon(AppIcons.warning, size: 13, color: p.warning),
                       Text(
-                        'No button would be Left click',
+                        tr('No button would be Left click'),
                         style: n.text.caption.copyWith(color: p.warning),
                       ),
                     ],
