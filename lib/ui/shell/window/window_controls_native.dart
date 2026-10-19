@@ -16,7 +16,6 @@ Future<void> initWindow({bool minimised = false, bool hidden = false}) async {
     minimumSize: minimumWindowSize,
     center: true,
     title: 'OpenX11SE',
-    titleBarStyle: TitleBarStyle.hidden,
     backgroundColor: nocturneDark.bg,
   );
   await windowManager.waitUntilReadyToShow(options, () async {
@@ -32,25 +31,4 @@ Future<void> initWindow({bool minimised = false, bool hidden = false}) async {
 
 Future<void> setWindowTitle(String title) async {
   if (_ready) await windowManager.setTitle(title);
-}
-
-Future<void> minimizeWindow() async {
-  if (_ready) await windowManager.minimize();
-}
-
-Future<void> toggleMaximizeWindow() async {
-  if (!_ready) return;
-  if (await windowManager.isMaximized()) {
-    await windowManager.unmaximize();
-  } else {
-    await windowManager.maximize();
-  }
-}
-
-Future<void> closeWindow() async {
-  if (_ready) await windowManager.close();
-}
-
-Future<void> startWindowDrag() async {
-  if (_ready) await windowManager.startDragging();
 }

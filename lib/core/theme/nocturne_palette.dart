@@ -277,6 +277,4 @@ const List<Color> spectrumStops = [
   Color(0xFFFF4545),
 ];
 
-const Color windowCloseHover = Color(0xFFC4453A);
-
 const Color ledCycleBase = Color(0xFFFF4545);

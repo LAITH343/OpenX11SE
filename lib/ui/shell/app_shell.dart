@@ -20,7 +20,6 @@ import 'profile_menu.dart';
 import 'section_content.dart';
 import 'shell_view_model.dart';
 import 'taskbar.dart';
-import 'title_bar.dart';
 import 'window/window_controls.dart';
 
 class AppShell extends StatefulWidget {
@@ -82,7 +81,6 @@ class _AppShellState extends State<AppShell> {
             color: n.bg,
             child: Column(
               children: [
-                if (hasWindowChrome) TitleBar(profileName: profileName),
                 Expanded(
                   child: Stack(
                     children: [

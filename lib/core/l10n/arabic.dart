@@ -126,9 +126,6 @@ const Map<String, String> arabicStrings = {
   "No other button is Left click — you'd lose the ability to click.":
       'لا يوجد زر آخر للنقر الأيسر — ستفقد القدرة على النقر.',
   'Minimise to tray': 'تصغير إلى شريط النظام',
-  'Minimise': 'تصغير',
-  'Maximise': 'تكبير',
-  'Close': 'إغلاق',
   'Sleep and power settings': 'إعدادات السكون والطاقة',
   'DPI stages': 'مراحل DPI',
   'Changed — not applied yet': 'تم التغيير — لم يُطبَّق بعد',
