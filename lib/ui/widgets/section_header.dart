@@ -21,7 +21,10 @@ class SectionHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(title, style: n.text.title),
+        Text(
+          title,
+          style: n.text.title.copyWith(fontSize: 26, letterSpacing: -0.26),
+        ),
         if (description != null) ...[
           const SizedBox(height: 4),
           Text(

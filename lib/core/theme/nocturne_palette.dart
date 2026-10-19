@@ -20,6 +20,12 @@ class NocturnePalette {
     required this.shadowSm,
     required this.shadowMd,
     required this.shadowLg,
+    required this.mouseBody,
+    required this.mouseEdge,
+    required this.mouseSeam,
+    required this.mouseWell,
+    required this.mouseSheen,
+    required this.mouseShadow,
   });
 
   final Brightness brightness;
@@ -35,10 +41,16 @@ class NocturnePalette {
   final List<BoxShadow> shadowSm;
   final List<BoxShadow> shadowMd;
   final List<BoxShadow> shadowLg;
+  final List<Color> mouseBody;
+  final Color mouseEdge;
+  final Color mouseSeam;
+  final Color mouseWell;
+  final Color mouseSheen;
+  final List<BoxShadow> mouseShadow;
 
   bool get isDark => brightness == Brightness.dark;
 
-  Color get divider => text.withValues(alpha: isDark ? 0.16 : 0.22);
+  Color get divider => text.withValues(alpha: isDark ? 0.13 : 0.22);
 
   Color n(int step) => neutral[step]!;
   Color a(int step) => accentRamp[step]!;
@@ -62,6 +74,12 @@ class NocturnePalette {
       shadowSm: shadowSm,
       shadowMd: shadowMd,
       shadowLg: shadowLg,
+      mouseBody: mouseBody,
+      mouseEdge: mouseEdge,
+      mouseSeam: mouseSeam,
+      mouseWell: mouseWell,
+      mouseSheen: mouseSheen,
+      mouseShadow: mouseShadow,
     );
   }
 
@@ -83,6 +101,15 @@ class NocturnePalette {
       shadowSm: BoxShadow.lerpList(a.shadowSm, b.shadowSm, t)!,
       shadowMd: BoxShadow.lerpList(a.shadowMd, b.shadowMd, t)!,
       shadowLg: BoxShadow.lerpList(a.shadowLg, b.shadowLg, t)!,
+      mouseBody: [
+        for (var i = 0; i < a.mouseBody.length; i++)
+          Color.lerp(a.mouseBody[i], b.mouseBody[i], t)!,
+      ],
+      mouseEdge: Color.lerp(a.mouseEdge, b.mouseEdge, t)!,
+      mouseSeam: Color.lerp(a.mouseSeam, b.mouseSeam, t)!,
+      mouseWell: Color.lerp(a.mouseWell, b.mouseWell, t)!,
+      mouseSheen: Color.lerp(a.mouseSheen, b.mouseSheen, t)!,
+      mouseShadow: BoxShadow.lerpList(a.mouseShadow, b.mouseShadow, t)!,
     );
   }
 }
@@ -93,20 +120,20 @@ const _shade = Color(0xFF000000);
 
 final NocturnePalette nocturneDark = NocturnePalette(
   brightness: Brightness.dark,
-  bg: const Color(0xFF1E1F22),
-  surface: const Color(0xFF2B2D31),
-  text: const Color(0xFFF2F3F5),
+  bg: const Color(0xFF1A1A1D),
+  surface: const Color(0xFF242428),
+  text: const Color(0xFFEBEBEE),
   accent: const Color(0xFF5865F2),
   neutral: const {
-    100: Color(0xFFF2F3F5),
-    200: Color(0xFFDBDEE1),
-    300: Color(0xFFB5BAC1),
-    400: Color(0xFF949BA4),
-    500: Color(0xFF80848E),
-    600: Color(0xFF6D6F78),
-    700: Color(0xFF4E5058),
-    800: Color(0xFF383A40),
-    900: Color(0xFF232428),
+    100: Color(0xFFEBEBEE),
+    200: Color(0xFFD2D2D7),
+    300: Color(0xFFAEAEB5),
+    400: Color(0xFF8A8A92),
+    500: Color(0xFF6B6B73),
+    600: Color(0xFF505056),
+    700: Color(0xFF3C3C41),
+    800: Color(0xFF2F2F33),
+    900: Color(0xFF1F1F22),
   },
   accentRamp: const {
     100: Color(0xFFF2F3FF),
@@ -122,43 +149,49 @@ final NocturnePalette nocturneDark = NocturnePalette(
   success: const Color(0xFF23A55A),
   danger: const Color(0xFFF23F43),
   warning: const Color(0xFFF0B232),
-  shadowSm: const [BoxShadow(color: Color(0xFF404249), spreadRadius: 1)],
+  shadowSm: const [BoxShadow(color: Color(0xFF2E2E32), spreadRadius: 1)],
   shadowMd: [
     BoxShadow(
-      color: _shade.withValues(alpha: 0.55),
-      offset: const Offset(0, 6),
-      blurRadius: 18,
+      color: _shade.withValues(alpha: 0.35),
+      offset: const Offset(0, 8),
+      blurRadius: 24,
     ),
-    const BoxShadow(color: Color(0xFF383A40), spreadRadius: 1),
+    const BoxShadow(color: Color(0xFF333338), spreadRadius: 1),
   ],
   shadowLg: [
     BoxShadow(
-      color: _shade.withValues(alpha: 0.65),
-      offset: const Offset(0, 16),
-      blurRadius: 40,
+      color: _shade.withValues(alpha: 0.5),
+      offset: const Offset(0, 18),
+      blurRadius: 44,
     ),
-    const BoxShadow(color: Color(0xFF4E5058), spreadRadius: 1),
+    const BoxShadow(color: Color(0xFF3A3A3F), spreadRadius: 1),
   ],
+  mouseBody: const [Color(0xFF3A3A3F), Color(0xFF28282C), Color(0xFF1C1C1F)],
+  mouseEdge: const Color(0xFF3C3C41),
+  mouseSeam: const Color(0xFF1A1A1D),
+  mouseWell: const Color(0xFF1A1A1D),
+  mouseSheen: const Color(0x12EBEBEE),
+  mouseShadow: const [],
 );
 
-const _lightInk = Color(0xFF141628);
+const _lightInk = Color(0xFF14141E);
 
 final NocturnePalette nocturneLight = NocturnePalette(
   brightness: Brightness.light,
-  bg: const Color(0xFFE9EBEF),
-  surface: const Color(0xFFFFFFFF),
-  text: const Color(0xFF232428),
+  bg: const Color(0xFFEEEEF0),
+  surface: const Color(0xFFF9F9FA),
+  text: const Color(0xFF1C1C1F),
   accent: const Color(0xFF5865F2),
   neutral: const {
-    100: Color(0xFF232428),
-    200: Color(0xFF383A40),
-    300: Color(0xFF4E5058),
-    400: Color(0xFF6D6F78),
-    500: Color(0xFF80848E),
-    600: Color(0xFF949BA4),
-    700: Color(0xFFB5BAC1),
-    800: Color(0xFFDBDEE1),
-    900: Color(0xFFF2F3F5),
+    100: Color(0xFF26262A),
+    200: Color(0xFF3D3D42),
+    300: Color(0xFF58585E),
+    400: Color(0xFF75757C),
+    500: Color(0xFF94949B),
+    600: Color(0xFFB4B4BA),
+    700: Color(0xFFD0D0D5),
+    800: Color(0xFFE2E2E6),
+    900: Color(0xFFEBEBEE),
   },
   accentRamp: const {
     100: Color(0xFF1F245C),
@@ -174,22 +207,39 @@ final NocturnePalette nocturneLight = NocturnePalette(
   success: const Color(0xFF248046),
   danger: const Color(0xFFB3261E),
   warning: const Color(0xFF8A5A00),
-  shadowSm: const [BoxShadow(color: Color(0xFFD8DADD), spreadRadius: 1)],
+  shadowSm: const [BoxShadow(color: Color(0xFFDCDCE0), spreadRadius: 1)],
   shadowMd: [
     BoxShadow(
       color: _lightInk.withValues(alpha: 0.08),
-      offset: const Offset(0, 6),
-      blurRadius: 18,
+      offset: const Offset(0, 8),
+      blurRadius: 22,
     ),
-    const BoxShadow(color: Color(0xFFD8DADD), spreadRadius: 1),
+    const BoxShadow(color: Color(0xFFD4D4D9), spreadRadius: 1),
   ],
   shadowLg: [
     BoxShadow(
-      color: _lightInk.withValues(alpha: 0.12),
-      offset: const Offset(0, 16),
+      color: _lightInk.withValues(alpha: 0.14),
+      offset: const Offset(0, 18),
       blurRadius: 40,
     ),
-    const BoxShadow(color: Color(0xFFB5BAC1), spreadRadius: 1),
+    const BoxShadow(color: Color(0xFFC4C4CA), spreadRadius: 1),
+  ],
+  mouseBody: const [Color(0xFFFAFAFB), Color(0xFFEBEBEE), Color(0xFFD4D4D9)],
+  mouseEdge: const Color(0xFFB4B4BA),
+  mouseSeam: const Color(0xFF9A9AA1),
+  mouseWell: const Color(0xFFCFCFD4),
+  mouseSheen: const Color(0xE6FFFFFF),
+  mouseShadow: [
+    BoxShadow(
+      color: _lightInk.withValues(alpha: 0.16),
+      offset: const Offset(0, 10),
+      blurRadius: 18,
+    ),
+    BoxShadow(
+      color: _lightInk.withValues(alpha: 0.12),
+      offset: const Offset(0, 2),
+      blurRadius: 3,
+    ),
   ],
 );
 
@@ -228,13 +278,5 @@ const List<Color> spectrumStops = [
 ];
 
 const Color windowCloseHover = Color(0xFFC4453A);
-
-const List<Color> deviceBodyGradient = [
-  Color(0xFF3F424D),
-  Color(0xFF292B31),
-  Color(0xFF1D1F2A),
-];
-
-const Color deviceBodySheen = Color(0xFFE9E9ED);
 
 const Color ledCycleBase = Color(0xFFFF4545);

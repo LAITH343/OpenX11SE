@@ -53,7 +53,7 @@ class _WidgetGalleryState extends State<WidgetGallery> {
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: n.groundGlow),
+        decoration: BoxDecoration(color: n.bg),
         child: Stack(
           children: [
             Positioned.fill(

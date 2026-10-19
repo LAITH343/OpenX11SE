@@ -9,13 +9,11 @@ import '../shell/app_section.dart';
 import '../shell/shell_view_model.dart';
 import '../widgets/auto_grid.dart';
 import '../widgets/colour_picker.dart';
-import '../widgets/motion.dart';
-import '../widgets/mouse_body_painter.dart';
 import '../widgets/pressable.dart';
 import '../widgets/section_header.dart';
 import '../widgets/surface_card.dart';
-import 'led_glow.dart';
 import 'lighting_view_model.dart';
+import 'mouse_led.dart';
 
 Color _color(RgbColor c) => Color(0xFF000000 | c.rgb);
 
@@ -32,227 +30,11 @@ class LightingSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 16,
       children: [
-        SectionHeader(title: section.label, description: section.description),
-        if (vm.hasSettings)
-          const AutoGrid(
-            minItemWidth: 300,
-            spacing: 14,
-            children: [_PreviewCard(), _Controls()],
-          ),
+        SectionHeader(title: section.label),
+        if (vm.hasSettings) const _Controls(),
       ],
     );
   }
-}
-
-class _Glow extends StatelessWidget {
-  const _Glow({required this.mode, required this.builder});
-
-  final LightingMode mode;
-  final Widget Function(BuildContext context, LedFrame frame) builder;
-
-  @override
-  Widget build(BuildContext context) {
-    final vm = context.watch<LightingViewModel>();
-    final l = vm.lighting;
-    return LedGlow(
-      mode: mode,
-      color: _color(l.color),
-      stageColor: _color(vm.activeStageColor),
-      brightness: l.brightness,
-      speed: l.speed,
-      builder: builder,
-    );
-  }
-}
-
-class _PreviewCard extends StatelessWidget {
-  const _PreviewCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final n = context.nocturne;
-    final mode = context.select<LightingViewModel, LightingMode>((v) => v.mode);
-    return SurfaceCard(
-      padding: const EdgeInsets.all(20),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Column(
-            spacing: 10,
-            children: [
-              _MousePreview(mode: mode),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 8,
-                children: [
-                  Blink(
-                    child: Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: n.accent,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  Text('Live preview · ${mode.label}', style: n.text.small),
-                ],
-              ),
-              Text(
-                'One RGB status LED on the top shell',
-                style: n.text.caption.copyWith(color: n.textMuted),
-              ),
-            ],
-          ),
-          Positioned(top: -6, right: -6, child: _CloseUp(mode: mode)),
-        ],
-      ),
-    );
-  }
-}
-
-class _MousePreview extends StatelessWidget {
-  const _MousePreview({required this.mode});
-
-  final LightingMode mode;
-
-  static const _halo = 160.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.nocturne.palette;
-    const body = MouseBodyPainter.bodySize;
-    const bleed = MouseBodyPainter.bleed;
-    return SizedBox.fromSize(
-      size: body,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: -bleed,
-            top: -bleed,
-            width: body.width + bleed * 2,
-            height: body.height + bleed * 2,
-            child: CustomPaint(painter: MouseBodyPainter(palette: palette)),
-          ),
-          Positioned(
-            left: body.width / 2 - _halo / 2,
-            top: body.height * .507 - _halo / 2,
-            width: _halo,
-            height: _halo,
-            child: IgnorePointer(
-              child: _Glow(
-                mode: mode,
-                builder: (context, f) => Opacity(
-                  opacity: f.opacity,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: Opacity(
-                          opacity: .32,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [f.color, f.color.withValues(alpha: 0)],
-                                stops: const [0, .62],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 74,
-                        top: 78,
-                        child: _Led(
-                          color: f.color,
-                          width: 12,
-                          height: 4,
-                          glow: const [(1, 4), (2, 14)],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CloseUp extends StatelessWidget {
-  const _CloseUp({required this.mode});
-
-  final LightingMode mode;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = context.nocturne;
-    final p = n.palette;
-    return Column(
-      spacing: 6,
-      children: [
-        Container(
-          width: 68,
-          height: 68,
-          alignment: Alignment.center,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: p.bg,
-            shape: BoxShape.circle,
-            boxShadow: p.shadowSm,
-          ),
-          child: _Glow(
-            mode: mode,
-            builder: (context, f) => Opacity(
-              opacity: f.opacity,
-              child: _Led(
-                color: f.color,
-                width: 28,
-                height: 9,
-                glow: const [(2, 8), (6, 26)],
-              ),
-            ),
-          ),
-        ),
-        Text(
-          'LED close-up',
-          style: n.text.micro.copyWith(fontSize: 10.5, color: n.textMuted),
-        ),
-      ],
-    );
-  }
-}
-
-class _Led extends StatelessWidget {
-  const _Led({
-    required this.color,
-    required this.width,
-    required this.height,
-    required this.glow,
-  });
-
-  final Color color;
-  final double width;
-  final double height;
-  final List<(double spread, double blur)> glow;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: width,
-    height: height,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(height / 2),
-      boxShadow: [
-        for (final (spread, blur) in glow)
-          BoxShadow(color: color, spreadRadius: spread, blurRadius: blur),
-      ],
-    ),
-  );
 }
 
 class _Controls extends StatelessWidget {
@@ -331,7 +113,7 @@ class _ModeTile extends StatelessWidget {
               alignment: Alignment.center,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(color: p.bg, shape: BoxShape.circle),
-              child: _Glow(
+              child: StagedLedGlow(
                 mode: mode,
                 builder: (context, f) => Opacity(
                   opacity: f.opacity,

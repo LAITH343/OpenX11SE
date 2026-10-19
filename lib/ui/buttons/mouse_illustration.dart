@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/button_assignment.dart';
+import '../lighting/mouse_led.dart';
 import '../widgets/dashed_border.dart';
 import '../widgets/mouse_body_painter.dart';
 import '../widgets/motion.dart';
@@ -11,7 +12,9 @@ import '../widgets/pressable.dart';
 import 'buttons_view_model.dart';
 
 class MouseIllustration extends StatelessWidget {
-  const MouseIllustration({super.key});
+  const MouseIllustration({super.key, this.interactive = true});
+
+  final bool interactive;
 
   static const bodySize = MouseBodyPainter.bodySize;
   static const gutter = 30.0;
@@ -65,10 +68,18 @@ class MouseIllustration extends StatelessWidget {
               top: -bleed,
               width: bodySize.width + bleed * 2,
               height: bodySize.height + bleed * 2,
-              child: _MouseBody(hovered: hovered),
+              child: interactive
+                  ? _MouseBody(hovered: hovered)
+                  : CustomPaint(painter: MouseBodyPainter(palette: n.palette)),
             ),
-            for (final row in vm.mainRows) callout(row, advanced: false),
-            if (vm.showAdvanced) ...[
+            Positioned(
+              left: gutter + bodySize.width / 2 - MouseLed.size / 2,
+              top: bodySize.height * .507 - MouseLed.size / 2,
+              child: const MouseLed(),
+            ),
+            if (interactive)
+              for (final row in vm.mainRows) callout(row, advanced: false),
+            if (interactive && vm.showAdvanced) ...[
               for (final row in vm.advancedRows) callout(row, advanced: true),
               Positioned(
                 left: 0,

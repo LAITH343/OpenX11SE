@@ -101,7 +101,7 @@ class ToastHost extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       right: 16,
-      bottom: 16,
+      bottom: 72,
       child: Semantics(
         liveRegion: true,
         child: Column(

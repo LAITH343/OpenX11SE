@@ -20,16 +20,15 @@ class _StatePage extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
             child: Align(
               alignment: Alignment.center,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 520),
+                constraints: const BoxConstraints(maxWidth: 440),
                 child: EntranceTransition(
                   duration: const Duration(milliseconds: 350),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 18,
                     children: children,
                   ),
@@ -53,11 +52,14 @@ class _Heading extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = context.nocturne;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: n.text.display),
+        Text(title, textAlign: TextAlign.center, style: n.text.display),
         const SizedBox(height: 6),
-        Text(body, style: n.text.body.copyWith(color: n.textSecondary)),
+        Text(
+          body,
+          textAlign: TextAlign.center,
+          style: n.text.body.copyWith(color: n.textSecondary),
+        ),
       ],
     );
   }
@@ -122,10 +124,12 @@ class NoDeviceState extends StatelessWidget {
         if (shell.failureText != null)
           Text(
             shell.failureText!,
+            textAlign: TextAlign.center,
             style: muted.copyWith(color: n.palette.warning),
           ),
         Wrap(
           spacing: 14,
+          alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Row(
@@ -175,6 +179,7 @@ class _Step extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = context.nocturne;
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 24,
@@ -252,6 +257,7 @@ class AsleepState extends StatelessWidget {
         Wrap(
           spacing: 14,
           runSpacing: 8,
+          alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Row(
@@ -334,6 +340,7 @@ class OffState extends StatelessWidget {
         Wrap(
           spacing: 14,
           runSpacing: 8,
+          alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Row(

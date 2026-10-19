@@ -12,13 +12,14 @@ import '../macros/macro_library_view_model.dart';
 import '../settings/update_dialog.dart';
 import '../settings/update_view_model.dart';
 import '../widgets/toast_host.dart';
+import 'device_pane.dart';
 import 'device_states.dart';
 import 'dialog_layer.dart';
 import 'edit_session_view_model.dart';
-import 'nav_rail.dart';
 import 'profile_menu.dart';
 import 'section_content.dart';
 import 'shell_view_model.dart';
+import 'taskbar.dart';
 import 'title_bar.dart';
 import 'window/window_controls.dart';
 
@@ -54,6 +55,13 @@ class _AppShellState extends State<AppShell> {
       (s) => s.profileName,
     );
     _syncTitle(profileName);
+    final status = context.select<ShellViewModel, ConnectionStatus>(
+      (s) => s.status,
+    );
+    final showsContent =
+        status == ConnectionStatus.connected ||
+        status == ConnectionStatus.disconnected;
+    final showsTaskbar = showsContent || status == ConnectionStatus.loading;
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyS, control: true): () =>
@@ -74,24 +82,34 @@ class _AppShellState extends State<AppShell> {
             color: n.bg,
             child: Column(
               children: [
-                if (hasWindowChrome) const TitleBar(profileName: ''),
+                if (hasWindowChrome) TitleBar(profileName: profileName),
                 Expanded(
                   child: Stack(
                     children: [
-                      Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(gradient: n.groundGlow),
-                        ),
-                      ),
                       LayoutBuilder(
                         builder: (context, constraints) {
                           final compact =
                               constraints.maxWidth < AppShell.compactWidth;
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                          return Stack(
                             children: [
-                              NavRail(compact: compact),
-                              const Expanded(child: _Main()),
+                              Positioned.fill(
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    if (showsContent)
+                                      DevicePane(compact: compact),
+                                    const Expanded(child: _Main()),
+                                  ],
+                                ),
+                              ),
+                              if (showsTaskbar)
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Taskbar(compact: compact),
+                                ),
                             ],
                           );
                         },

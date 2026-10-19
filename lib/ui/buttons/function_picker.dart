@@ -476,13 +476,6 @@ class _KeyboardPane extends StatelessWidget {
                 ),
             ],
           ),
-          Text(
-            'Tip: hold modifiers while pressing the key to capture the whole '
-            'combo.',
-            style: n.text.caption.copyWith(
-              color: n.textColor.withValues(alpha: 0.58),
-            ),
-          ),
         ],
       ),
     );

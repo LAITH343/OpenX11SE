@@ -42,7 +42,7 @@ class MacrosSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 16,
       children: [
-        SectionHeader(title: section.label, description: section.description),
+        SectionHeader(title: section.label),
         LayoutBuilder(
           builder: (context, c) {
             if (c.maxWidth < _singleColumnWidth) {

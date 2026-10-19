@@ -28,77 +28,6 @@ class ProfileMenuAnchor extends InheritedWidget {
       link != oldWidget.link;
 }
 
-class ProfileButton extends StatelessWidget {
-  const ProfileButton({super.key, this.compact = false});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = context.nocturne;
-    final shell = context.watch<ShellViewModel>();
-    return CompositedTransformTarget(
-      link: ProfileMenuAnchor.of(context),
-      child: Pressable(
-        onPressed: shell.toggleProfileMenu,
-        tooltip: compact
-            ? 'Profile: ${shell.profileName}'
-            : 'Profiles are stored on this computer',
-        builder: (context, states) {
-          final hovered = states.contains(WidgetState.hovered);
-          final pressed = states.contains(WidgetState.pressed);
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final iconOnly = compact || constraints.maxWidth < 80;
-              return AnimatedContainer(
-                duration: n.motion.fast,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: pressed || hovered || shell.profileMenuOpen
-                      ? n.hoverTint
-                      : Colors.transparent,
-                  borderRadius: n.radius.mdAll,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: iconOnly ? 0 : 12),
-                  child: Row(
-                    mainAxisAlignment: iconOnly
-                        ? MainAxisAlignment.center
-                        : MainAxisAlignment.start,
-                    children: [
-                      Icon(AppIcons.userCircle, size: 18, color: n.textColor),
-                      if (!iconOnly) ...[
-                        const SizedBox(width: 11),
-                        Expanded(
-                          child: Text(
-                            shell.profileName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: n.text.row.copyWith(
-                              color: n.textColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Icon(
-                          AppIcons.caretDown,
-                          size: 12,
-                          color: n.textColor.withValues(alpha: 0.6),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
 class ProfileMenuLayer extends StatelessWidget {
   const ProfileMenuLayer({super.key});
 
@@ -118,8 +47,9 @@ class ProfileMenuLayer extends StatelessWidget {
           ),
           CompositedTransformFollower(
             link: ProfileMenuAnchor.of(context),
-            targetAnchor: Alignment.bottomLeft,
-            offset: const Offset(0, 6),
+            targetAnchor: Alignment.topLeft,
+            followerAnchor: Alignment.bottomLeft,
+            offset: const Offset(-6, -12),
             child: const EntranceTransition(
               kind: Entrance.pop,
               duration: Duration(milliseconds: 180),

@@ -145,15 +145,23 @@ class MouseBodyPainter extends CustomPainter {
     final fill = Paint()..style = PaintingStyle.fill;
     final stroke = Paint()..style = PaintingStyle.stroke;
 
+    for (final shadow in palette.mouseShadow) {
+      canvas.drawPath(
+        _body.shift(shadow.offset),
+        Paint()
+          ..color = shadow.color
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, shadow.blurSigma),
+      );
+    }
     canvas
       ..drawPath(
         _body,
         fill
-          ..shader = const LinearGradient(
+          ..shader = LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: deviceBodyGradient,
-            stops: [0, .55, 1],
+            colors: palette.mouseBody,
+            stops: const [0, .55, 1],
           ).createShader(bounds),
       )
       ..drawPath(
@@ -163,15 +171,15 @@ class MouseBodyPainter extends CustomPainter {
             center: const Alignment(-.3, -.4),
             radius: .6,
             colors: [
-              deviceBodySheen.withValues(alpha: .07),
-              deviceBodySheen.withValues(alpha: 0),
+              palette.mouseSheen,
+              palette.mouseSheen.withValues(alpha: 0),
             ],
           ).createShader(bounds),
       )
       ..drawPath(
         _body,
         stroke
-          ..color = palette.n(700)
+          ..color = palette.mouseEdge
           ..strokeWidth = 1.2,
       );
 
@@ -190,10 +198,10 @@ class MouseBodyPainter extends CustomPainter {
         _seams,
         Paint()
           ..style = PaintingStyle.stroke
-          ..color = palette.bg
+          ..color = palette.mouseSeam
           ..strokeWidth = 1.4,
       )
-      ..drawRRect(_wheelWell, Paint()..color = palette.bg);
+      ..drawRRect(_wheelWell, Paint()..color = palette.mouseWell);
 
     final edge = Paint()
       ..style = PaintingStyle.stroke

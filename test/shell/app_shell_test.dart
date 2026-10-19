@@ -53,13 +53,12 @@ Future<void> loadFonts() async {
 }
 
 void expectApplyCount(WidgetTester tester, int count) {
-  final applyButton = find.ancestor(
-    of: find.text('Apply'),
-    matching: find.byType(AppButton),
-  );
-  expect(applyButton, findsOneWidget);
   expect(
-    find.descendant(of: applyButton, matching: find.text('$count')),
+    find.ancestor(of: find.text('Apply'), matching: find.byType(AppButton)),
+    findsOneWidget,
+  );
+  expect(
+    find.text('$count unsaved change${count == 1 ? '' : 's'}'),
     findsOneWidget,
   );
 }
@@ -171,7 +170,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.text('Connect your X11SE'), findsOneWidget);
-    expect(find.text('No device'), findsOneWidget);
+    expect(find.text('Apply'), findsNothing);
 
     await tester.runAsync(() async {
       transport.setPresent([wiredDevice]);
@@ -187,9 +186,10 @@ void main() {
     expect(find.text('Wired'), findsOneWidget);
     expect(find.text('FW 1.05'), findsOneWidget);
     expect(find.text('Performance'), findsWidgets);
-    expect(find.text('ON THE MOUSE'), findsOneWidget);
-    expect(find.text('6 of 8 stages enabled'), findsOneWidget);
-    expect(find.text('22,000'), findsOneWidget);
+    expect(find.text('Report rate'), findsOneWidget);
+    expect(find.text('Synced'), findsOneWidget);
+    expect(find.text('6 of 8 enabled'), findsOneWidget);
+    expect(find.text('22,000'), findsWidgets);
     expect(find.text('Polling rate'), findsOneWidget);
 
     tester.view.physicalSize = const Size(880, 600);
@@ -223,7 +223,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('Breathing DPI'));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Live preview · Breathing DPI'), findsOneWidget);
     expect(find.text('Edit stage colours'), findsOneWidget);
     await tester.tap(find.text('Static'));
     await tester.pump(const Duration(milliseconds: 400));
@@ -231,7 +230,7 @@ void main() {
     expectApplyCount(tester, 3);
     tester.view.physicalSize = const Size(880, 600);
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Live preview · Static'), findsOneWidget);
+    expect(find.byType(ColourPicker), findsOneWidget);
     tester.view.physicalSize = const Size(1280, 800);
     await tester.pump(const Duration(milliseconds: 400));
 

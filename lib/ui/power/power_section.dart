@@ -22,13 +22,11 @@ class PowerSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 12,
       children: [
-        SectionHeader(title: section.label, description: section.description),
+        SectionHeader(title: section.label),
         if (vm.hasSettings) ...[
           SliderRow(
             title: 'Sleep timer',
             icon: AppIcons.moon,
-            description:
-                'Idle time before the mouse sleeps. Moving it wakes it.',
             changed: vm.sleepChanged,
             slider: _MinutesSlider(
               value: power.sleepMinutes,
@@ -39,9 +37,6 @@ class PowerSection extends StatelessWidget {
           SliderRow(
             title: 'LED off · deep sleep',
             icon: AppIcons.moonStars,
-            description:
-                'Idle time before lighting turns off and the mouse enters '
-                'deep sleep.',
             changed: vm.deepSleepChanged,
             slider: _MinutesSlider(
               value: power.deepSleepMinutes,

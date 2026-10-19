@@ -13,13 +13,9 @@ import '../widgets/status_banner.dart';
 import '../widgets/surface_card.dart';
 import '../widgets/tag.dart';
 import 'buttons_view_model.dart';
-import 'mouse_illustration.dart';
 
 class ButtonsSection extends StatelessWidget {
   const ButtonsSection({super.key});
-
-  static const _columnMin = 300.0;
-  static const _gap = 14.0;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +27,6 @@ class ButtonsSection extends StatelessWidget {
       children: [
         SectionHeader(
           title: section.label,
-          description: section.description,
           trailing: AppButton(
             label: 'Reset all buttons',
             icon: AppIcons.arrowCounterClockwise,
@@ -39,26 +34,7 @@ class ButtonsSection extends StatelessWidget {
           ),
         ),
         if (vm.noLeftClick) const _NoLeftClickBanner(),
-        if (vm.hasSettings)
-          LayoutBuilder(
-            builder: (context, c) {
-              if (c.maxWidth < _columnMin * 2 + _gap) {
-                return const Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: _gap,
-                  children: [_IllustrationCard(), _ButtonList()],
-                );
-              }
-              return const Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: _gap,
-                children: [
-                  Expanded(child: _IllustrationCard()),
-                  Expanded(child: _ButtonList()),
-                ],
-              );
-            },
-          ),
+        if (vm.hasSettings) const _ButtonList(),
       ],
     );
   }
@@ -96,44 +72,6 @@ class _NoLeftClickBanner extends StatelessWidget {
           onPressed: vm.restoreLeftClick,
         ),
       ],
-    );
-  }
-}
-
-class _IllustrationCard extends StatelessWidget {
-  const _IllustrationCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final n = context.nocturne;
-    final p = n.palette;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-      decoration: BoxDecoration(
-        color: p.surface,
-        borderRadius: n.radius.lgAll,
-        boxShadow: p.shadowSm,
-        gradient: RadialGradient(
-          center: const Alignment(0, -0.2),
-          radius: 0.6,
-          colors: [
-            Color.alphaBlend(p.accent.withValues(alpha: 0.08), p.surface),
-            p.surface,
-          ],
-        ),
-      ),
-      child: Column(
-        spacing: 12,
-        children: [
-          const MouseIllustration(),
-          Text(
-            'Top-down view · hover to highlight',
-            style: n.text.caption.copyWith(
-              color: n.textColor.withValues(alpha: 0.58),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

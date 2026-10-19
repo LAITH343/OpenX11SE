@@ -119,6 +119,8 @@ class ShellViewModel extends ChangeNotifier {
   int? get activeStageNumber =>
       _dpi == null ? null : _dpi!.activeStageIndex + 1;
 
+  DpiSettings? get dpi => _dpi;
+
   DpiStage? get activeStage => _dpi?.activeStage;
 
   PollingRate? get polling => _polling;

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_palette.dart';
 import '../../core/theme/nocturne_theme.dart';
-import 'app_header.dart';
+import '../widgets/app_mark.dart';
 import '../widgets/pressable.dart';
 import 'window/window_controls.dart';
 
@@ -19,7 +19,7 @@ class TitleBar extends StatelessWidget {
     final n = context.nocturne;
     final style = n.text.caption;
     return Container(
-      height: 50,
+      height: 34,
       color: n.chrome,
       child: Row(
         children: [
@@ -35,28 +35,24 @@ class TitleBar extends StatelessWidget {
                     const AppMark(size: 15),
                     const SizedBox(width: 8),
                     Text('OpenX11SE', style: style),
-                    const SizedBox(width: 8),
-                    if (profileName.isNotEmpty) Flexible(
-                      child: Text(
-                        '— $profileName',
-                        overflow: TextOverflow.ellipsis,
-                        style: style.copyWith(
-                          color: n.textColor.withValues(alpha: 0.5),
+                    if (profileName.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          '— $profileName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: style.copyWith(
+                            color: n.textColor.withValues(alpha: 0.5),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 14),
-                    Container(width: 1, height: 18, color: n.divider),
-                    const SizedBox(width: 14),
-                    const Flexible(child: DeviceSummary(titleBar: true)),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          const TitleBarActions(),
-          const SizedBox(width: 8),
           _WindowButton(
             icon: AppIcons.minus,
             tooltip: 'Minimise',
@@ -75,35 +71,6 @@ class TitleBar extends StatelessWidget {
             onPressed: () => unawaited(closeWindow()),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class AppMark extends StatelessWidget {
-  const AppMark({super.key, required this.size});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = context.nocturne;
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.27),
-        border: Border.all(color: n.accent, width: 1.5),
-      ),
-      child: Text(
-        'X',
-        style: n.text.micro.copyWith(
-          fontSize: size * 0.53,
-          height: 1,
-          fontWeight: FontWeight.w600,
-          color: n.accent,
-        ),
       ),
     );
   }

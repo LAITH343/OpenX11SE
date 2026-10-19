@@ -25,11 +25,11 @@ class SectionContent extends StatelessWidget {
       (e) => e.writeError,
     );
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(28, 20, 28, 48),
+      padding: const EdgeInsets.fromLTRB(28, 22, 28, 96),
       child: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1004),
+          constraints: const BoxConstraints(maxWidth: 884),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: 18,

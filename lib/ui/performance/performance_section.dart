@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' hide TextInput;
 import 'package:provider/provider.dart';
@@ -9,7 +11,6 @@ import '../../domain/dpi_settings.dart';
 import '../../domain/polling_rate.dart';
 import '../../domain/rgb_color.dart';
 import '../shell/app_section.dart';
-import '../shell/shell_view_model.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_slider.dart';
 import '../widgets/auto_grid.dart';
@@ -47,9 +48,8 @@ class PerformanceSection extends StatelessWidget {
       children: [
         SectionHeader(
           title: section.label,
-          description: section.description,
           trailing: Text(
-            '${vm.enabledCount} of ${DpiSettings.stageCount} stages enabled',
+            '${vm.enabledCount} of ${DpiSettings.stageCount} enabled',
             style: n.text.tabular(
               n.text.caption.copyWith(color: n.textSecondary),
             ),
@@ -75,31 +75,42 @@ class _StageGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final n = context.nocturne;
     final vm = context.watch<PerformanceViewModel>();
     return Semantics(
       label: 'DPI stages',
-      child: AutoGrid(
-        minItemWidth: 124,
-        spacing: 8,
-        fill: true,
-        children: [
-          for (var i = 0; i < vm.stages.length; i++)
-            _StageCard(
-              index: i,
-              stage: vm.stages[i],
-              active: vm.activeIndex == i,
-              selected: vm.selectedIndex == i,
-              changed: vm.stageChanged(i),
-              flashSerial: vm.flashStage == i ? vm.flashSerial : null,
-            ),
-        ],
+      container: true,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: n.surface,
+          borderRadius: n.radius.lgAll,
+          boxShadow: n.palette.shadowSm,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4,
+          children: [
+            for (var i = 0; i < vm.stages.length; i++)
+              Expanded(
+                child: _StageColumn(
+                  index: i,
+                  stage: vm.stages[i],
+                  active: vm.activeIndex == i,
+                  selected: vm.selectedIndex == i,
+                  changed: vm.stageChanged(i),
+                  flashSerial: vm.flashStage == i ? vm.flashSerial : null,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _StageCard extends StatefulWidget {
-  const _StageCard({
+class _StageColumn extends StatefulWidget {
+  const _StageColumn({
     required this.index,
     required this.stage,
     required this.active,
@@ -116,11 +127,13 @@ class _StageCard extends StatefulWidget {
   final int? flashSerial;
 
   @override
-  State<_StageCard> createState() => _StageCardState();
+  State<_StageColumn> createState() => _StageColumnState();
 }
 
-class _StageCardState extends State<_StageCard>
+class _StageColumnState extends State<_StageColumn>
     with SingleTickerProviderStateMixin {
+  static const _barHeight = 150.0;
+
   late final AnimationController _flash = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1100),
@@ -128,7 +141,7 @@ class _StageCardState extends State<_StageCard>
   );
 
   @override
-  void didUpdateWidget(covariant _StageCard old) {
+  void didUpdateWidget(covariant _StageColumn old) {
     super.didUpdateWidget(old);
     final serial = widget.flashSerial;
     if (serial != null && serial != old.flashSerial) {
@@ -141,6 +154,9 @@ class _StageCardState extends State<_StageCard>
     _flash.dispose();
     super.dispose();
   }
+
+  static double _fill(int dpi) =>
+      (12 + math.log(dpi / 50) / math.log(480) * 88).clamp(0, 100) / 100;
 
   @override
   Widget build(BuildContext context) {
@@ -157,143 +173,169 @@ class _StageCardState extends State<_StageCard>
       focusRadius: n.radius.mdAll,
       builder: (context, states) {
         final hovered = states.contains(WidgetState.hovered);
-        return Transform.translate(
-          offset: Offset(0, hovered ? -1 : 0),
-          child: AnimatedBuilder(
-            animation: _flash,
-            builder: (context, child) {
-              final t = Curves.easeOut.transform(_flash.value);
-              final flashing = _flash.isAnimating;
-              return AnimatedContainer(
-                duration: n.motion.medium,
-                decoration: BoxDecoration(
+        return AnimatedBuilder(
+          animation: _flash,
+          builder: (context, child) {
+            final t = Curves.easeOut.transform(_flash.value);
+            final flashing = _flash.isAnimating;
+            return AnimatedContainer(
+              duration: n.motion.medium,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              decoration: BoxDecoration(
+                color: widget.selected
+                    ? p.accent.withValues(alpha: 0.10)
+                    : hovered
+                    ? p.text.withValues(alpha: 0.04)
+                    : p.text.withValues(alpha: 0),
+                borderRadius: n.radius.mdAll,
+                border: Border.all(
                   color: widget.selected
-                      ? n.selectedSurface
-                      : p.surface,
-                  borderRadius: n.radius.mdAll,
-                  boxShadow: flashing
-                      ? [
-                          BoxShadow(
-                            color: p.accent.withValues(alpha: 0.7 * (1 - t)),
-                            blurRadius: 28 * (1 - t),
-                          ),
-                          BoxShadow(color: p.accent, spreadRadius: 2 - t),
-                        ]
-                      : widget.selected
-                      ? [BoxShadow(color: n.selectedBorder, spreadRadius: 1)]
-                      : p.shadowSm,
+                      ? p.accent
+                      : p.accent.withValues(alpha: 0),
                 ),
-                child: child,
-              );
-            },
-            child: ClipRRect(
-              borderRadius: n.radius.mdAll,
-              child: Stack(
+                boxShadow: flashing
+                    ? [
+                        BoxShadow(
+                          color: p.accent.withValues(alpha: 0.7 * (1 - t)),
+                          blurRadius: 28 * (1 - t),
+                        ),
+                        BoxShadow(color: p.accent, spreadRadius: 2 - t),
+                      ]
+                    : null,
+              ),
+              child: child,
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 8,
+            children: [
+              Row(
+                spacing: 5,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(11, 11, 11, 14),
-                    child: _cardBody(context, vm, color),
+                  Text(
+                    'S${widget.index + 1}',
+                    maxLines: 1,
+                    softWrap: false,
+                    style: n.text.kicker.copyWith(
+                      fontSize: 10.5,
+                      letterSpacing: 0.84,
+                      color: n.textSecondary,
+                    ),
                   ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 300),
-                      opacity: on ? (widget.active ? 1 : 0.35) : 0,
+                  Expanded(
+                    child: widget.active
+                        ? Text(
+                            'ACTIVE',
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.fade,
+                            textAlign: TextAlign.end,
+                            style: n.text.kicker.copyWith(
+                              fontSize: 9.5,
+                              letterSpacing: 0.95,
+                              color: p.a(300),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  if (widget.changed)
+                    const Tooltip(
+                      message: 'Changed — not applied yet',
+                      child: ChangedDot(size: 5),
+                    ),
+                ],
+              ),
+              AnimatedOpacity(
+                duration: n.motion.medium,
+                opacity: on ? 1 : 0.42,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    formatThousands(stage.dpi),
+                    maxLines: 1,
+                    style: n.text.tabular(
+                      n.text.subheading.copyWith(height: 1.2),
+                    ),
+                  ),
+                ),
+              ),
+              AnimatedOpacity(
+                duration: n.motion.medium,
+                opacity: on ? 1 : 0.42,
+                child: Container(
+                  height: _barHeight,
+                  alignment: Alignment.bottomCenter,
+                  decoration: BoxDecoration(
+                    color: p.n(900),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: widget.active ? 1 : 0.55,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 350),
+                      curve: n.motion.knobCurve,
+                      height: _barHeight * _fill(stage.dpi),
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(6),
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Color.alphaBlend(
+                              color.withValues(alpha: 0.10),
+                              p.n(900),
+                            ),
+                            Color.alphaBlend(
+                              color.withValues(alpha: 0.42),
+                              p.n(900),
+                            ),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.active
+                                ? color
+                                : color.withValues(alpha: 0),
+                            offset: const Offset(0, -6),
+                            blurRadius: 22,
+                            spreadRadius: -8,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.topCenter,
+                      clipBehavior: Clip.antiAlias,
                       child: Container(height: 2, color: color),
                     ),
                   ),
+                ),
+              ),
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runSpacing: 6,
+                children: [
+                  _StageRadio(
+                    active: widget.active,
+                    onPressed: on ? () => vm.setActive(widget.index) : null,
+                  ),
+                  AppSwitch(
+                    value: on,
+                    small: true,
+                    tooltip: on ? 'Disable stage' : 'Enable stage',
+                    semanticLabel: 'Stage ${widget.index + 1} enabled',
+                    onChanged: (_) => vm.toggleStage(widget.index),
+                  ),
                 ],
               ),
-            ),
+            ],
           ),
         );
       },
-    );
-  }
-
-  Widget _cardBody(BuildContext context, PerformanceViewModel vm, Color color) {
-    final n = context.nocturne;
-    final p = n.palette;
-    final stage = widget.stage;
-    final on = stage.enabled;
-    final opacity = on ? 1.0 : 0.42;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
-      children: [
-        Row(
-          children: [
-            Text(
-              'STAGE ${widget.index + 1}',
-              maxLines: 1,
-              softWrap: false,
-              style: n.text.kicker.copyWith(
-                fontSize: 10.5,
-                letterSpacing: 0.735,
-                color: n.textSecondary,
-              ),
-            ),
-            if (widget.changed) ...[
-              const SizedBox(width: 6),
-              const Tooltip(
-                message: 'Changed — not applied yet',
-                child: ChangedDot(size: 5),
-              ),
-            ],
-            const Spacer(),
-            AppSwitch(
-              value: on,
-              small: true,
-              tooltip: on ? 'Disable stage' : 'Enable stage',
-              semanticLabel: 'Stage ${widget.index + 1} enabled',
-              onChanged: (_) => vm.toggleStage(widget.index),
-            ),
-          ],
-        ),
-        AnimatedOpacity(
-          duration: n.motion.medium,
-          opacity: opacity,
-          child: Text(formatThousands(stage.dpi), style: n.text.valueMedium),
-        ),
-        AnimatedOpacity(
-          duration: n.motion.medium,
-          opacity: opacity,
-          child: Row(
-            spacing: 7,
-            children: [
-              _StageRadio(
-                active: widget.active,
-                onPressed: on ? () => vm.setActive(widget.index) : null,
-              ),
-              Text(
-                widget.active
-                    ? 'Active'
-                    : on
-                    ? ''
-                    : 'Off',
-                style: n.text.micro.copyWith(
-                  color: widget.active ? p.a(300) : n.textSecondary,
-                ),
-              ),
-              const Spacer(),
-              AnimatedContainer(
-                duration: n.motion.medium,
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: n.radius.smAll,
-                  boxShadow: on
-                      ? [BoxShadow(color: color, blurRadius: 10)]
-                      : null,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
@@ -467,11 +509,6 @@ class _DpiEditor extends StatelessWidget {
                 ),
               ),
               const _DpiTicks(),
-              Text(
-                'Steps of 50 up to 10,000, then steps of 100. Arrow keys move '
-                'one step; typed values snap.',
-                style: n.text.caption.copyWith(color: n.textSecondary),
-              ),
             ],
           ),
         ),
@@ -626,30 +663,6 @@ class _StageColour extends StatelessWidget {
           value: _color(stage.color),
           onChanged: (c) => vm.setColor(index, _rgb(c)),
         ),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              'Shown on the mouse in Static DPI and Breathing DPI lighting. ',
-              style: n.text.caption.copyWith(color: n.textSecondary),
-            ),
-            Pressable(
-              onPressed: () => context.read<ShellViewModel>().selectSection(
-                AppSection.lighting,
-              ),
-              builder: (context, states) => Text(
-                'Lighting',
-                style: n.text.caption.copyWith(
-                  color: n.accent,
-                  decoration: states.contains(WidgetState.hovered)
-                      ? TextDecoration.underline
-                      : null,
-                  decorationColor: n.accent,
-                ),
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -660,7 +673,6 @@ class _PollingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final n = context.nocturne;
     final vm = context.watch<PerformanceViewModel>();
     return SurfaceCard(
       child: Column(
@@ -680,11 +692,6 @@ class _PollingCard extends StatelessWidget {
               for (final rate in PollingRate.values)
                 SegmentOption(value: rate, label: '${rate.hz} Hz'),
             ],
-          ),
-          Text(
-            '${1000 ~/ vm.polling.hz} ms between reports. Higher is smoother '
-            'but uses more battery.',
-            style: n.text.caption.copyWith(color: n.textSecondary),
           ),
         ],
       ),
@@ -706,14 +713,12 @@ class _SensorCard extends StatelessWidget {
           const CardHeading(title: 'Sensor', icon: AppIcons.crosshair),
           ToggleRow(
             title: 'Angle snap',
-            description: 'Straightens slightly wobbly movement lines.',
             value: vm.angleSnap,
             changed: vm.angleSnapChanged,
             onChanged: vm.setAngleSnap,
           ),
           ToggleRow(
             title: 'Ripple control',
-            description: 'Smooths sensor jitter at high DPI.',
             value: vm.ripple,
             changed: vm.rippleChanged,
             onChanged: vm.setRipple,

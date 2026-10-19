@@ -31,10 +31,7 @@ class SettingsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 12,
           children: [
-            SectionHeader(
-              title: 'Settings',
-              description: 'App preferences and device information.',
-            ),
+            SectionHeader(title: 'Settings'),
             _AppearanceCard(),
             _BehaviourCard(),
             AutoGrid(
@@ -72,15 +69,9 @@ class _RowsCard extends StatelessWidget {
 }
 
 class _SettingRow extends StatelessWidget {
-  const _SettingRow({
-    required this.title,
-    required this.trailing,
-    this.description,
-    this.badge,
-  });
+  const _SettingRow({required this.title, required this.trailing, this.badge});
 
   final String title;
-  final String? description;
   final Widget? badge;
   final Widget trailing;
 
@@ -95,22 +86,12 @@ class _SettingRow extends StatelessWidget {
       children: [
         ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 200, maxWidth: 420),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 8,
-                children: [
-                  Text(title, style: n.text.row),
-                  ?badge,
-                ],
-              ),
-              if (description != null)
-                Text(
-                  description!,
-                  style: n.text.caption.copyWith(color: n.textSecondary),
-                ),
+              Text(title, style: n.text.row),
+              ?badge,
             ],
           ),
         ),
@@ -130,7 +111,6 @@ class _AppearanceCard extends StatelessWidget {
       children: [
         _SettingRow(
           title: 'Theme',
-          description: 'System follows your OS setting.',
           trailing: SegmentedControl<AppTheme>(
             options: const [
               SegmentOption(
@@ -155,7 +135,6 @@ class _AppearanceCard extends StatelessWidget {
         ),
         _SettingRow(
           title: 'Accent colour',
-          description: 'Follow the active DPI stage colour across the app.',
           trailing: SegmentedControl<bool>(
             options: const [
               SegmentOption(value: false, label: 'OpenX11SE violet'),
@@ -218,32 +197,24 @@ class _BehaviourCard extends StatelessWidget {
       children: [
         ToggleRow(
           title: 'Auto-apply changes',
-          description:
-              'Write each change to the mouse straight away instead of '
-              'staging it.',
           value: vm.autoApply,
           onChanged: (v) => unawaited(vm.setAutoApply(v)),
         ),
         if (vm.supportsStartup)
           ToggleRow(
             title: 'Start with system',
-            description: 'Launch OpenX11SE minimised when you sign in.',
             value: vm.startWithSystem,
             onChanged: (v) => unawaited(vm.setStartWithSystem(v)),
           ),
         if (vm.supportsTray)
           ToggleRow(
             title: 'Minimise to tray',
-            description:
-                'Closing the window keeps the app running in the system tray.',
             value: vm.minimiseToTray,
             onChanged: (v) => unawaited(vm.setMinimiseToTray(v)),
           ),
         if (updates.isSupported)
           ToggleRow(
             title: 'Automatically check for updates',
-            description:
-                'Look for a new release on GitHub once a day at start-up.',
             value: updates.autoCheck,
             onChanged: (v) => unawaited(updates.setAutoCheck(v)),
           ),
