@@ -86,6 +86,7 @@ class SettingsViewModel extends ChangeNotifier {
   List<InfoRow> get deviceInfo {
     final online = _shell.isOnline;
     final battery = _shell.batteryPercent;
+    final full = _shell.chargeState == ChargeState.charged;
     final charging = _shell.chargeState == ChargeState.charging;
     return [
       const InfoRow('Model', 'Attack Shark X11SE'),
@@ -96,12 +97,13 @@ class SettingsViewModel extends ChangeNotifier {
         null => 'Not connected',
       }),
       InfoRow('Firmware', online ? _shell.firmwareLabel ?? '—' : '—'),
-      InfoRow(
-        'Battery',
-        online && battery != null
-            ? '$battery%${charging ? ' · charging' : ''}'
-            : '—',
-      ),
+      InfoRow('Battery', switch (battery) {
+        _ when !online => '—',
+        _ when full => 'Fully charged · on cable',
+        _ when charging => 'Charging',
+        null => '—',
+        final percent => '$percent%',
+      }),
     ];
   }
 

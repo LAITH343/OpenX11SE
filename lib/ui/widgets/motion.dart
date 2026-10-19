@@ -150,6 +150,45 @@ class Blink extends StatelessWidget {
   );
 }
 
+class ChargeSweep extends StatelessWidget {
+  const ChargeSweep({super.key, required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      final band = width * 0.4;
+      return _Looping(
+        period: const Duration(milliseconds: 1600),
+        builder: (context, t) => Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Positioned(
+              left: -band + (width + band) * Curves.easeInOut.transform(t),
+              top: 0,
+              bottom: 0,
+              width: band,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      color.withValues(alpha: 0),
+                      color,
+                      color.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 class PulseRings extends StatelessWidget {
   const PulseRings({super.key, required this.child, this.size = 72});
 

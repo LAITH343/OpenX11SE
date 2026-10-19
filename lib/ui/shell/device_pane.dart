@@ -402,13 +402,21 @@ class _BatteryCard extends StatelessWidget {
         : percent >= 15
         ? AppIcons.batteryLow
         : AppIcons.batteryWarning;
-    final fill = stale
-        ? p.n(500)
-        : full
+    final bar = full
         ? p.success
         : percent < ShellViewModel.lowBatteryPercent
         ? p.danger
         : n.accent;
+    final fill = stale
+        ? p.n(500)
+        : charging
+        ? p.a(300)
+        : bar;
+    final label = full
+        ? '100%'
+        : charging
+        ? 'Charging'
+        : '$percent%';
     final (state, stateIcon, stateBg, stateFg) = full
         ? (
             'Fully charged',
@@ -417,14 +425,14 @@ class _BatteryCard extends StatelessWidget {
             p.success,
           )
         : charging
-        ? ('Charging', AppIcons.lightning, p.a(900), p.a(200))
-        : ('Charger disconnected', AppIcons.plugs, p.n(800), p.n(200));
+        ? ('On cable', AppIcons.lightning, p.a(900), p.a(200))
+        : ('On battery', AppIcons.plugs, p.n(800), p.n(200));
     final tip = stale
         ? 'Last known level'
         : full
-        ? 'Fully charged · $percent% · cable connected'
+        ? 'Fully charged · cable connected'
         : charging
-        ? 'Charging over USB · $percent%'
+        ? 'Charging over USB'
         : 'Running on battery · $percent% · charger disconnected';
     final stateIconWidget = Icon(stateIcon, size: 12, color: stateFg);
     return [
@@ -434,7 +442,7 @@ class _BatteryCard extends StatelessWidget {
           children: [
             Icon(icon, size: 22, color: fill),
             const SizedBox(width: 10),
-            Text(tr('$percent%'), style: n.text.valueSmall),
+            Text(tr(label), style: n.text.valueSmall),
             const SizedBox(width: 10),
             Expanded(
               child: Align(
@@ -481,19 +489,21 @@ class _BatteryCard extends StatelessWidget {
           height: 4,
           color: p.n(800),
           alignment: AlignmentDirectional.centerStart,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(end: percent.clamp(0, 100) / 100),
-            duration: const Duration(milliseconds: 400),
-            builder: (context, v, _) => FractionallySizedBox(
-              widthFactor: v,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: fill,
-                  borderRadius: BorderRadius.circular(2),
+          child: charging && !full && !stale
+              ? ChargeSweep(color: n.accent)
+              : TweenAnimationBuilder<double>(
+                  tween: Tween(end: full ? 1.0 : percent.clamp(0, 100) / 100),
+                  duration: const Duration(milliseconds: 400),
+                  builder: (context, v, _) => FractionallySizedBox(
+                    widthFactor: v,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: stale ? p.n(500) : bar,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
         ),
       ),
     ];
