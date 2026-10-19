@@ -199,7 +199,7 @@ void main() {
       );
     });
 
-    test('picks the macOS archive for macOS', () {
+    test('picks the macOS disk image for macOS', () {
       final json = releaseJson();
       expect(
         evaluateRelease(json, v('1.0.0'), platform: UpdatePlatform.macos),
@@ -209,21 +209,21 @@ void main() {
           UpdateErrorKind.noInstaller,
         ),
       );
+      const dmg = 'OpenX11SE-macOS-1.2.0.dmg';
       const zip = 'OpenX11SE-macOS-1.2.0.zip';
       json['assets'] = [
         ...json['assets']! as List<Object?>,
-        {'name': zip, 'browser_download_url': 'https://github.com/d/$zip'},
-        {
-          'name': '$zip.sha256',
-          'browser_download_url': 'https://github.com/d/$zip.sha256',
-        },
+        for (final name in [zip, '$zip.sha256', dmg, '$dmg.sha256'])
+          {'name': name, 'browser_download_url': 'https://github.com/d/$name'},
       ];
       final result = evaluateRelease(
         json,
         v('1.0.0'),
         platform: UpdatePlatform.macos,
       );
-      expect((result as UpdateAvailable).release.installer.name, zip);
+      final release = (result as UpdateAvailable).release;
+      expect(release.installer.name, dmg);
+      expect(release.checksum.name, '$dmg.sha256');
     });
 
     test('classifies rate limits', () {
@@ -398,8 +398,9 @@ void main() {
       final apps = await Directory.systemTemp.createTemp('update_apps');
       addTearDown(() => apps.delete(recursive: true));
       final executable = '${apps.path}/OpenX11SE.app/Contents/MacOS/OpenX11SE';
-      final archive = File('${downloads.path}/OpenX11SE-macOS-1.2.0.zip')
-        ..writeAsStringSync('zip');
+      final archive = File('${downloads.path}/OpenX11SE-macOS-1.2.0.dmg')
+        ..writeAsStringSync('dmg');
+      final mount = '${downloads.path}/mount';
       final ran = <(String, List<String>)>[];
       final launched = <(String, List<String>)>[];
       final repo = GitHubUpdateRepository(
@@ -408,7 +409,11 @@ void main() {
         executable: executable,
         runner: (path, args) async {
           ran.add((path, args));
-          Directory('${args.last}/OpenX11SE.app').createSync(recursive: true);
+          if (args.first == 'attach') {
+            Directory('$mount/OpenX11SE.app').createSync(recursive: true);
+          } else if (path == '/usr/bin/ditto') {
+            Directory(args.last).createSync(recursive: true);
+          }
           return ProcessResult(0, 0, '', '');
         },
         launcher: (path, args) async {
@@ -417,8 +422,25 @@ void main() {
         },
       );
       expect(await repo.install(archive.path), isNull);
-      expect(ran.single.$1, '/usr/bin/ditto');
-      expect(ran.single.$2.take(3), ['-x', '-k', archive.path]);
+      expect(ran.map((r) => r.$1), [
+        '/usr/bin/hdiutil',
+        '/usr/bin/ditto',
+        '/usr/bin/hdiutil',
+      ]);
+      expect(ran[0].$2, [
+        'attach',
+        '-nobrowse',
+        '-readonly',
+        '-noautoopen',
+        '-mountpoint',
+        mount,
+        archive.path,
+      ]);
+      expect(ran[1].$2, [
+        '$mount/OpenX11SE.app',
+        '${downloads.path}/staged/OpenX11SE.app',
+      ]);
+      expect(ran[2].$2, ['detach', mount, '-force']);
       final (shell, args) = launched.single;
       expect(shell, '/bin/sh');
       expect(args[1], macSwapScript);
@@ -427,24 +449,68 @@ void main() {
       expect(args[5], '${apps.path}/OpenX11SE.app');
     }, testOn: '!windows');
 
-    test('rejects a macOS archive without an app', () async {
+    test('rejects a macOS image without an app', () async {
       final apps = await Directory.systemTemp.createTemp('update_apps');
       addTearDown(() => apps.delete(recursive: true));
-      final archive = File('${downloads.path}/update.zip')
-        ..writeAsStringSync('zip');
+      final archive = File('${downloads.path}/update.dmg')
+        ..writeAsStringSync('dmg');
       var launched = false;
+      final ran = <String>[];
+      var attachCode = 0;
       final repo = GitHubUpdateRepository(
         downloadDirectory: downloads,
         platform: UpdatePlatform.macos,
         executable: '${apps.path}/OpenX11SE.app/Contents/MacOS/OpenX11SE',
-        runner: (_, _) async => ProcessResult(0, 0, '', ''),
+        runner: (_, args) async {
+          ran.add(args.first);
+          return ProcessResult(
+            0,
+            args.first == 'attach' ? attachCode : 0,
+            '',
+            '',
+          );
+        },
         launcher: (_, _) async {
           launched = true;
           return Process.start('true', const []);
         },
       );
       expect(await repo.install(archive.path), UpdateErrorKind.launchFailed);
+      expect(ran, ['attach', 'detach']);
+      ran.clear();
+      attachCode = 1;
+      expect(await repo.install(archive.path), UpdateErrorKind.launchFailed);
+      expect(ran, ['detach', 'attach', 'detach']);
       expect(launched, isFalse);
+      expect(Directory('${downloads.path}/staged').existsSync(), isFalse);
+    }, testOn: '!windows');
+
+    test('unmounts the image when copying throws', () async {
+      final apps = await Directory.systemTemp.createTemp('update_apps');
+      addTearDown(() => apps.delete(recursive: true));
+      final archive = File('${downloads.path}/update.dmg')
+        ..writeAsStringSync('dmg');
+      final ran = <String>[];
+      final repo = GitHubUpdateRepository(
+        downloadDirectory: downloads,
+        platform: UpdatePlatform.macos,
+        executable: '${apps.path}/OpenX11SE.app/Contents/MacOS/OpenX11SE',
+        runner: (path, args) async {
+          ran.add(path == '/usr/bin/ditto' ? 'ditto' : args.first);
+          if (args.first == 'attach') {
+            Directory(
+              '${downloads.path}/mount/OpenX11SE.app',
+            ).createSync(recursive: true);
+          }
+          if (path == '/usr/bin/ditto') {
+            throw const ProcessException('ditto', []);
+          }
+          return ProcessResult(0, 0, '', '');
+        },
+        launcher: (_, _) async => Process.start('true', const []),
+      );
+      expect(await repo.install(archive.path), UpdateErrorKind.launchFailed);
+      expect(ran, ['attach', 'ditto', 'detach']);
       expect(
         await GitHubUpdateRepository(
           downloadDirectory: downloads,

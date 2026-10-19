@@ -112,7 +112,7 @@ enum UpdatePlatform {
 
   String assetName(AppVersion version) => switch (this) {
     windows => 'OpenX11SE-Setup-$version.exe',
-    macos => 'OpenX11SE-macOS-$version.zip',
+    macos => 'OpenX11SE-macOS-$version.dmg',
   };
 }
 

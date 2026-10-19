@@ -17,9 +17,27 @@ codesign --force --deep --timestamp=none --sign "$identity" "$app"
 codesign --verify --deep --strict "$app"
 
 out="build/macos-release"
-name="OpenX11SE-macOS-$version.zip"
+zip="OpenX11SE-macOS-$version.zip"
+dmg="OpenX11SE-macOS-$version.dmg"
 mkdir -p "$out"
-rm -f "$out/$name" "$out/$name.sha256"
-ditto -c -k --sequesterRsrc --keepParent "$app" "$out/$name"
-(cd "$out" && shasum -a 256 "$name" > "$name.sha256")
-echo "$out/$name"
+rm -f "$out/$zip" "$out/$zip.sha256" "$out/$dmg" "$out/$dmg.sha256"
+
+ditto -c -k --sequesterRsrc --keepParent "$app" "$out/$zip"
+
+stage=$(mktemp -d)
+trap 'rm -rf "$stage"' EXIT
+ditto "$app" "$stage/OpenX11SE.app"
+ln -s /Applications "$stage/Applications"
+attempt=1
+until hdiutil create -volname OpenX11SE -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$out/$dmg"; do
+  if [ "$attempt" -ge 3 ]; then
+    exit 1
+  fi
+  attempt=$((attempt + 1))
+  sleep 5
+done
+codesign --force --timestamp=none --sign "$identity" "$out/$dmg"
+
+(cd "$out" && shasum -a 256 "$zip" > "$zip.sha256" && shasum -a 256 "$dmg" > "$dmg.sha256")
+echo "$out/$dmg"
+echo "$out/$zip"

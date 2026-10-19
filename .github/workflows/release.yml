@@ -92,6 +92,8 @@ jobs:
         with:
           name: macos
           path: |
+            build/macos-release/OpenX11SE-macOS-*.dmg
+            build/macos-release/OpenX11SE-macOS-*.dmg.sha256
             build/macos-release/OpenX11SE-macOS-*.zip
             build/macos-release/OpenX11SE-macOS-*.zip.sha256
           if-no-files-found: error

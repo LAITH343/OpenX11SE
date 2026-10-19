@@ -208,7 +208,7 @@ class GitHubUpdateRepository implements UpdateRepository {
     }
   }
 
-  Future<UpdateErrorKind?> _installMacApp(String archivePath) async {
+  Future<UpdateErrorKind?> _installMacApp(String imagePath) async {
     final bundle = macAppBundle(_executable);
     if (bundle == null) return UpdateErrorKind.launchFailed;
     if (bundle.contains('/AppTranslocation/') ||
@@ -216,25 +216,37 @@ class GitHubUpdateRepository implements UpdateRepository {
       return UpdateErrorKind.moveRequired;
     }
     final staging = Directory('${_downloads.path}/staged');
+    final mount = Directory('${_downloads.path}/mount');
+    await _detach(mount);
     await _deleteQuietly(staging);
+    await _deleteQuietly(mount);
     await staging.create(recursive: true);
-    final extract = await _run('/usr/bin/ditto', [
-      '-x',
-      '-k',
-      archivePath,
-      staging.path,
-    ]);
-    if (extract.exitCode != 0) {
-      await _deleteQuietly(staging);
-      return UpdateErrorKind.launchFailed;
-    }
-    final app = (await staging.list().toList())
-        .whereType<Directory>()
-        .where((d) => d.path.endsWith('.app'))
-        .firstOrNull;
-    if (app == null) {
-      await _deleteQuietly(staging);
-      return UpdateErrorKind.launchFailed;
+    await mount.create(recursive: true);
+    Directory? app;
+    try {
+      final attach = await _run('/usr/bin/hdiutil', [
+        'attach',
+        '-nobrowse',
+        '-readonly',
+        '-noautoopen',
+        '-mountpoint',
+        mount.path,
+        imagePath,
+      ]);
+      if (attach.exitCode != 0) return await _abort(staging);
+      final source = (await mount.list().toList())
+          .whereType<Directory>()
+          .where((d) => d.path.endsWith('.app'))
+          .firstOrNull;
+      if (source == null) return await _abort(staging);
+      final target = Directory(
+        '${staging.path}/${source.uri.pathSegments.lastWhere((s) => s.isNotEmpty)}',
+      );
+      final copy = await _run('/usr/bin/ditto', [source.path, target.path]);
+      if (copy.exitCode != 0) return await _abort(staging);
+      app = target;
+    } finally {
+      await _detach(mount);
     }
     await _launch('/bin/sh', [
       '-c',
@@ -245,6 +257,20 @@ class GitHubUpdateRepository implements UpdateRepository {
       bundle,
     ]);
     return null;
+  }
+
+  Future<UpdateErrorKind> _abort(Directory staging) async {
+    await _deleteQuietly(staging);
+    return UpdateErrorKind.launchFailed;
+  }
+
+  Future<void> _detach(Directory mount) async {
+    if (!await mount.exists()) return;
+    try {
+      await _run('/usr/bin/hdiutil', ['detach', mount.path, '-force']);
+    } on Object {
+      return;
+    }
   }
 
   static Future<bool> _isWritable(Directory directory) async {

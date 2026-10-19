@@ -38,8 +38,11 @@ The installer and its SHA-256 file are written to `build\installer`. It installs
 
 ## macOS app
 
-The app is signed with a self-signed certificate, so macOS asks for confirmation the first time it is
-opened: right-click `OpenX11SE.app` and choose Open, or allow it under System Settings > Privacy & Security.
+Download `OpenX11SE-macOS-<version>.dmg` from the latest release, open it and drag `OpenX11SE.app` into
+Applications. The app is signed with a self-signed certificate, so macOS asks for confirmation the first
+time it is opened: right-click `OpenX11SE.app` and choose Open, or choose Open Anyway under System Settings >
+Privacy & Security. Later versions install from Settings > About > Check for updates.
+
 Keeping the same certificate for every release keeps macOS permissions across updates.
 
 Create the certificate once and keep the `.p12` file and its password safe:
@@ -55,7 +58,7 @@ Build, sign and package:
 ./tool/build_macos_release.sh
 ```
 
-The archive and its SHA-256 file are written to `build/macos-release`. Set `MACOS_SIGN_IDENTITY` when the
+The disk image, the legacy zip archive and their SHA-256 files are written to `build/macos-release`. Set `MACOS_SIGN_IDENTITY` when the
 certificate has a name other than `OpenX11SE Self-Signed`.
 
 ## Testing on hardware
