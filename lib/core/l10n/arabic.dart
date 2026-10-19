@@ -127,6 +127,8 @@ const Map<String, String> arabicStrings = {
       'لا يوجد زر آخر للنقر الأيسر — ستفقد القدرة على النقر.',
   'Minimise to tray': 'تصغير إلى شريط النظام',
   'Keep in menu bar': 'الإبقاء في شريط القوائم',
+  'Mouse notifications': 'إشعارات الماوس',
+  'In app': 'داخل التطبيق',
   'Sleep and power settings': 'إعدادات السكون والطاقة',
   'DPI stages': 'مراحل DPI',
   'Changed — not applied yet': 'تم التغيير — لم يُطبَّق بعد',

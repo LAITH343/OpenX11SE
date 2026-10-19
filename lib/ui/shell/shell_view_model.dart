@@ -1,14 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../core/formatting/number_format.dart';
+import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../data/hid/hid_transport.dart';
 import '../../data/repositories/device_repository.dart';
 import '../../data/repositories/device_state.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/repositories/settings_repository.dart';
+import '../../data/system/system_notifications.dart';
+import '../../domain/app_settings.dart';
 import '../../domain/device_info.dart';
 import '../../domain/dpi_settings.dart';
 import '../../domain/polling_rate.dart';
@@ -25,11 +28,16 @@ class ShellViewModel extends ChangeNotifier {
     required ProfileRepository profiles,
     required this._settings,
     required this._toasts,
+    this._notifications = const NoSystemNotifications(),
   }) {
     _subscriptions = [
       _device.states.listen(_onState),
       _device.stageChanges.listen(_onStageChange),
       profiles.watchProfiles().listen(_onProfiles, onError: (_) {}),
+      _settings.watchSettings().listen(
+        (s) => _notificationStyle = s.notificationStyle,
+        onError: (_) {},
+      ),
     ];
     unawaited(_restoreSection());
     _onState(_device.state);
@@ -41,7 +49,10 @@ class ShellViewModel extends ChangeNotifier {
   final DeviceRepository _device;
   final SettingsRepository _settings;
   final ToastController _toasts;
+  final SystemNotifications _notifications;
   late final List<StreamSubscription<Object>> _subscriptions;
+
+  NotificationStyle _notificationStyle = NotificationStyle.inApp;
 
   DeviceState _state = const DeviceAbsent();
   bool _hadSettings = false;
@@ -273,7 +284,7 @@ class ShellViewModel extends ChangeNotifier {
         _connection = device.connection;
       case DeviceAbsent():
         if (previous is DeviceReady) {
-          _toasts.show(
+          _announce(
             'Mouse disconnected — edits kept',
             kind: ToastKind.warning,
             icon: AppIconsFill.plugs,
@@ -291,7 +302,7 @@ class ShellViewModel extends ChangeNotifier {
     }
     if (previous is! DeviceReady) {
       if (!_hadSettings) {
-        _toasts.show(
+        _announce(
           'X11SE connected · settings read',
           kind: ToastKind.success,
           icon: AppIconsFill.plugsConnected,
@@ -309,7 +320,7 @@ class ShellViewModel extends ChangeNotifier {
         !charging &&
         (before.batteryPercent == null ||
             before.batteryPercent! >= lowBatteryPercent)) {
-      _toasts.show(
+      _announce(
         'Battery low — $percent%. Connect the cable to charge.',
         kind: ToastKind.warning,
         icon: AppIconsFill.batteryWarning,
@@ -318,7 +329,7 @@ class ShellViewModel extends ChangeNotifier {
     if (info.chargeState == ChargeState.charged &&
         before.chargeState != ChargeState.charged &&
         before.chargeState != ChargeState.unknown) {
-      _toasts.show(
+      _announce(
         'X11SE fully charged',
         kind: ToastKind.success,
         icon: AppIconsFill.batteryFull,
@@ -328,20 +339,20 @@ class ShellViewModel extends ChangeNotifier {
 
   void _announceLink(MouseLink from, MouseLink to) {
     if (to == MouseLink.off) {
-      _toasts.show('X11SE turned off — edits kept', icon: AppIcons.power);
+      _announce('X11SE turned off — edits kept', icon: AppIcons.power);
     } else if (from == MouseLink.off) {
-      _toasts.show(
+      _announce(
         'X11SE is back on',
         kind: ToastKind.success,
         icon: AppIconsFill.plugsConnected,
       );
     } else if (to == MouseLink.asleep) {
-      _toasts.show(
+      _announce(
         'X11SE went to sleep — move it to wake',
         icon: AppIconsFill.moon,
       );
     } else {
-      _toasts.show(
+      _announce(
         'X11SE is awake',
         kind: ToastKind.success,
         icon: AppIconsFill.sun,
@@ -353,10 +364,23 @@ class ShellViewModel extends ChangeNotifier {
     final state = _state;
     if (state is! DeviceReady) return;
     final stage = state.settings.dpi.stages[index];
-    _toasts.show(
+    _announce(
       'DPI button · stage ${index + 1} · ${formatThousands(stage.dpi)} DPI',
       icon: AppIconsFill.gauge,
     );
+  }
+
+  void _announce(
+    String text, {
+    ToastKind kind = ToastKind.info,
+    required IconData icon,
+  }) {
+    if (_notificationStyle == NotificationStyle.system &&
+        _notifications.isSupported) {
+      unawaited(_notifications.show(tr(text)));
+      return;
+    }
+    _toasts.show(text, kind: kind, icon: icon);
   }
 
   @override

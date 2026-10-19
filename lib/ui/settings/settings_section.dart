@@ -242,6 +242,26 @@ class _BehaviourCard extends StatelessWidget {
             value: vm.minimiseToTray,
             onChanged: (v) => unawaited(vm.setMinimiseToTray(v)),
           ),
+        if (vm.supportsSystemNotifications)
+          _SettingRow(
+            title: 'Mouse notifications',
+            trailing: SegmentedControl<NotificationStyle>(
+              options: const [
+                SegmentOption(
+                  value: NotificationStyle.inApp,
+                  label: 'In app',
+                  icon: AppIcons.browser,
+                ),
+                SegmentOption(
+                  value: NotificationStyle.system,
+                  label: 'System',
+                  icon: AppIcons.desktop,
+                ),
+              ],
+              selected: vm.notificationStyle,
+              onChanged: (s) => unawaited(vm.setNotificationStyle(s)),
+            ),
+          ),
         if (updates.isSupported)
           ToggleRow(
             title: 'Automatically check for updates',

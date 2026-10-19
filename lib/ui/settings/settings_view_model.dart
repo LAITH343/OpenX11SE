@@ -7,6 +7,7 @@ import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/system/system_integration.dart';
+import '../../data/system/system_notifications.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/device_info.dart';
 import '../shell/appearance_view_model.dart';
@@ -31,6 +32,7 @@ class SettingsViewModel extends ChangeNotifier {
     required this._profiles,
     AppSettings initial = AppSettings.defaults,
     this._system = const NoSystemIntegration(),
+    this._notifications = const NoSystemNotifications(),
     this.appVersion = '1.0.0',
   }) : _settings = initial {
     _edit.addListener(_syncAccent);
@@ -51,6 +53,7 @@ class SettingsViewModel extends ChangeNotifier {
   final ShellViewModel _shell;
   final ProfilesViewModel _profiles;
   final SystemIntegration _system;
+  final SystemNotifications _notifications;
   final String appVersion;
   late final StreamSubscription<AppSettings> _subscription;
 
@@ -71,6 +74,10 @@ class SettingsViewModel extends ChangeNotifier {
   bool get supportsStartup => _system.supportsStartup;
 
   bool get supportsTray => _system.supportsTray;
+
+  bool get supportsSystemNotifications => _notifications.isSupported;
+
+  NotificationStyle get notificationStyle => _settings.notificationStyle;
 
   String get buildText => 'Desktop · ${_platformName()} · Flutter';
 
@@ -117,6 +124,13 @@ class SettingsViewModel extends ChangeNotifier {
 
   Future<void> setMinimiseToTray(bool value) =>
       _update((s) => s.copyWith(minimiseToTray: value));
+
+  Future<void> setNotificationStyle(NotificationStyle style) async {
+    await _update((s) => s.copyWith(notificationStyle: style));
+    if (style == NotificationStyle.system) {
+      await _notifications.requestPermission();
+    }
+  }
 
   Future<void> restoreFactoryDefaults() async {
     final confirmed = await _shell.confirm(

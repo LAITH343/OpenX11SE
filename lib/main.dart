@@ -17,6 +17,7 @@ import 'data/repositories/profile_repository.dart';
 import 'data/repositories/profile_transfer_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/system/system_integration.dart';
+import 'data/system/system_notifications.dart';
 import 'data/update/update_repository.dart';
 import 'domain/app_settings.dart';
 import 'domain/app_version.dart';
@@ -53,6 +54,7 @@ Future<void> main(List<String> args) async {
   final appSettings = await settings.settings();
   AppStrings.language = AppLanguage.fromCode(appSettings.language);
   final system = createSystemIntegration();
+  final notifications = LocalSystemNotifications();
   final toTray = appSettings.minimiseToTray && system.supportsTray;
   final startMinimised = args.contains(startMinimisedArgument);
   final version = await _appVersion();
@@ -103,6 +105,7 @@ Future<void> main(List<String> args) async {
             profiles: context.read(),
             settings: context.read(),
             toasts: context.read(),
+            notifications: notifications,
           ),
         ),
         ChangeNotifierProvider(
@@ -128,6 +131,7 @@ Future<void> main(List<String> args) async {
             profiles: context.read(),
             initial: appSettings,
             system: system,
+            notifications: notifications,
             appVersion: version?.toString() ?? '—',
           ),
         ),

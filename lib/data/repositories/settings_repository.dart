@@ -12,6 +12,7 @@ abstract final class _Keys {
   static const minimiseToTray = 'minimise_to_tray';
   static const autoCheckUpdates = 'auto_check_updates';
   static const lastUpdateCheck = 'last_update_check';
+  static const notificationStyle = 'notification_style';
 }
 
 class SettingsRepository {
@@ -75,6 +76,10 @@ class SettingsRepository {
         final int ms => DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true),
         null => null,
       },
+      notificationStyle:
+          NotificationStyle.values.asNameMap()[stored[_Keys
+              .notificationStyle]] ??
+          d.notificationStyle,
     );
   }
 
@@ -91,6 +96,7 @@ class SettingsRepository {
       _Keys.autoCheckUpdates: flag(s.autoCheckUpdates),
       _Keys.lastUpdateCheck: s.lastUpdateCheck?.millisecondsSinceEpoch
           .toString(),
+      _Keys.notificationStyle: s.notificationStyle.name,
     };
   }
 }

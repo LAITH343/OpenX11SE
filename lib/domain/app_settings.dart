@@ -1,5 +1,7 @@
 enum AppTheme { dark, light, system }
 
+enum NotificationStyle { inApp, system }
+
 class AppSettings {
   const AppSettings({
     this.theme = AppTheme.dark,
@@ -11,6 +13,7 @@ class AppSettings {
     this.minimiseToTray = true,
     this.autoCheckUpdates = true,
     this.lastUpdateCheck,
+    this.notificationStyle = NotificationStyle.inApp,
   });
 
   static const defaults = AppSettings();
@@ -24,6 +27,7 @@ class AppSettings {
   final bool minimiseToTray;
   final bool autoCheckUpdates;
   final DateTime? lastUpdateCheck;
+  final NotificationStyle notificationStyle;
 
   AppSettings copyWith({
     AppTheme? theme,
@@ -35,6 +39,7 @@ class AppSettings {
     bool? minimiseToTray,
     bool? autoCheckUpdates,
     DateTime? lastUpdateCheck,
+    NotificationStyle? notificationStyle,
   }) => AppSettings(
     theme: theme ?? this.theme,
     accentFollowsStage: accentFollowsStage ?? this.accentFollowsStage,
@@ -45,6 +50,7 @@ class AppSettings {
     minimiseToTray: minimiseToTray ?? this.minimiseToTray,
     autoCheckUpdates: autoCheckUpdates ?? this.autoCheckUpdates,
     lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
+    notificationStyle: notificationStyle ?? this.notificationStyle,
   );
 
   @override
@@ -58,7 +64,8 @@ class AppSettings {
       other.startWithSystem == startWithSystem &&
       other.minimiseToTray == minimiseToTray &&
       other.autoCheckUpdates == autoCheckUpdates &&
-      other.lastUpdateCheck == lastUpdateCheck;
+      other.lastUpdateCheck == lastUpdateCheck &&
+      other.notificationStyle == notificationStyle;
 
   @override
   int get hashCode => Object.hash(
@@ -71,6 +78,7 @@ class AppSettings {
     minimiseToTray,
     autoCheckUpdates,
     lastUpdateCheck,
+    notificationStyle,
   );
 
   @override
