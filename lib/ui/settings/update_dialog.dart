@@ -239,6 +239,7 @@ class _DownloadProgress extends StatelessWidget {
               curve: Curves.ease,
               builder: (context, v, _) => FractionallySizedBox(
                 widthFactor: v.clamp(0.0, 1.0),
+                heightFactor: 1,
                 child: ColoredBox(color: n.accent),
               ),
             ),
