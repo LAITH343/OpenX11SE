@@ -3,34 +3,29 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import '../../../domain/device_info.dart';
+import '../device_polling.dart';
 import '../hid_transport.dart';
 import 'hid_isolates.dart';
 
-class WindowsHidTransport implements HidTransport {
+class WindowsHidTransport with DevicePolling implements HidTransport {
   WindowsHidTransport({this.pollInterval = const Duration(milliseconds: 1500)});
 
+  @override
   final Duration pollInterval;
 
   _HidWorker? _worker;
   Future<_HidWorker>? _starting;
   final Map<String, EnumeratedDevice> _entries = {};
-  late final StreamController<List<HidDeviceInfo>> _devices =
-      StreamController.broadcast(
-        onListen: _startPolling,
-        onCancel: _stopPolling,
-      );
-  Timer? _poll;
-  List<HidDeviceInfo> _last = const [];
-  bool _emitted = false;
-  bool _enumerating = false;
   bool _disposed = false;
+
+  @override
+  bool get pollingDisposed => _disposed;
 
   @override
   HidAvailability get availability => HidAvailability.available;
 
   @override
-  @override
-  Stream<List<HidDeviceInfo>> get devices => _devices.stream;
+  Stream<List<HidDeviceInfo>> get devices => deviceList.stream;
 
   Future<_HidWorker> _ensureWorker() {
     if (_disposed) {
@@ -56,34 +51,6 @@ class WindowsHidTransport implements HidTransport {
     return [for (final d in found) d.info];
   }
 
-  void _startPolling() {
-    _poll ??= Timer.periodic(pollInterval, (_) => _refresh());
-    _refresh();
-  }
-
-  void _stopPolling() {
-    _poll?.cancel();
-    _poll = null;
-    _emitted = false;
-  }
-
-  Future<void> _refresh() async {
-    if (_enumerating || _disposed) return;
-    _enumerating = true;
-    try {
-      final list = await enumerate();
-      if (!_emitted || !_sameDevices(list, _last)) {
-        _emitted = true;
-        _last = list;
-        if (!_devices.isClosed) _devices.add(list);
-      }
-    } on Object catch (e, s) {
-      if (!_devices.isClosed) _devices.addError(e, s);
-    } finally {
-      _enumerating = false;
-    }
-  }
-
   @override
   Future<HidConnection> open(HidDeviceInfo device) async {
     final worker = await _ensureWorker();
@@ -105,19 +72,11 @@ class WindowsHidTransport implements HidTransport {
   @override
   Future<void> dispose() async {
     _disposed = true;
-    _stopPolling();
-    await _devices.close();
+    stopPolling();
+    await deviceList.close();
     _worker?.kill();
     _worker = null;
   }
-}
-
-bool _sameDevices(List<HidDeviceInfo> a, List<HidDeviceInfo> b) {
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
 }
 
 class WindowsHidConnection implements HidConnection {

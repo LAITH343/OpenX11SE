@@ -13,6 +13,15 @@ abstract final class HidUsage {
   static const rightWin = 0xE7;
 }
 
+abstract final class KeyLabels {
+  static bool apple = false;
+
+  static String get ctrl => apple ? 'Control' : 'Ctrl';
+  static String get alt => apple ? 'Option' : 'Alt';
+  static String get win => apple ? 'Cmd' : 'Win';
+  static String get save => apple ? '⌘S' : 'Ctrl+S';
+}
+
 const Map<int, String> _namedKeys = {
   0x28: 'Enter',
   0x29: 'Esc',
@@ -55,14 +64,8 @@ const Map<int, String> _namedKeys = {
   0x63: 'Num .',
   0x64: r'\',
   0x65: 'Menu',
-  0xE0: 'Ctrl',
   0xE1: 'Shift',
-  0xE2: 'Alt',
-  0xE3: 'Win',
-  0xE4: 'Right Ctrl',
   0xE5: 'Right Shift',
-  0xE6: 'Right Alt',
-  0xE7: 'Right Win',
 };
 
 String hidKeyName(int usage) {
@@ -74,6 +77,20 @@ String hidKeyName(int usage) {
   if (usage >= 0x3A && usage <= 0x45) return 'F${usage - 0x39}';
   if (usage >= 0x68 && usage <= 0x73) return 'F${usage - 0x5B}';
   if (usage >= 0x59 && usage <= 0x61) return 'Num ${usage - 0x58}';
+  switch (usage) {
+    case HidUsage.leftCtrl:
+      return KeyLabels.ctrl;
+    case HidUsage.leftAlt:
+      return KeyLabels.alt;
+    case HidUsage.leftWin:
+      return KeyLabels.win;
+    case HidUsage.rightCtrl:
+      return 'Right ${KeyLabels.ctrl}';
+    case HidUsage.rightAlt:
+      return 'Right ${KeyLabels.alt}';
+    case HidUsage.rightWin:
+      return 'Right ${KeyLabels.win}';
+  }
   return _namedKeys[usage] ??
       'Key 0x${usage.toRadixString(16).toUpperCase().padLeft(2, '0')}';
 }
@@ -102,9 +119,9 @@ KeyModifiers combineModifiers(KeyModifiers a, KeyModifiers b) => KeyModifiers(
 );
 
 String keyComboLabel(KeyButton key) => [
-  if (key.modifiers.ctrl) 'Ctrl',
+  if (key.modifiers.ctrl) KeyLabels.ctrl,
   if (key.modifiers.shift) 'Shift',
-  if (key.modifiers.alt) 'Alt',
-  if (key.modifiers.win) 'Win',
+  if (key.modifiers.alt) KeyLabels.alt,
+  if (key.modifiers.win) KeyLabels.win,
   hidKeyName(key.usage),
 ].join(' + ');

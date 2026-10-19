@@ -1,3 +1,4 @@
+import 'keyboard_keys.dart';
 import 'macro.dart';
 
 abstract final class ButtonSlot {
@@ -109,10 +110,10 @@ class KeyModifiers {
 
   @override
   String toString() => [
-    if (ctrl) 'Ctrl',
+    if (ctrl) KeyLabels.ctrl,
     if (shift) 'Shift',
-    if (alt) 'Alt',
-    if (win) 'Win',
+    if (alt) KeyLabels.alt,
+    if (win) KeyLabels.win,
   ].join(' + ');
 }
 

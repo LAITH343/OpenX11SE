@@ -14,6 +14,7 @@ enum UpdateErrorKind {
   downloadFailed,
   storageFailed,
   launchFailed,
+  moveRequired,
 }
 
 sealed class UpdateCheckResult {
@@ -105,12 +106,24 @@ const installerArguments = [
   '/RELAUNCH=1',
 ];
 
-String installerFileName(AppVersion version) => 'OpenX11SE-Setup-$version.exe';
+enum UpdatePlatform {
+  windows,
+  macos;
+
+  String assetName(AppVersion version) => switch (this) {
+    windows => 'OpenX11SE-Setup-$version.exe',
+    macos => 'OpenX11SE-macOS-$version.zip',
+  };
+}
 
 UpdateRepository createUpdateRepository() =>
     platform.createPlatformUpdateRepository();
 
-UpdateCheckResult evaluateRelease(Object? json, AppVersion current) {
+UpdateCheckResult evaluateRelease(
+  Object? json,
+  AppVersion current, {
+  UpdatePlatform platform = UpdatePlatform.windows,
+}) {
   if (json is! Map<String, Object?>) {
     return const UpdateCheckFailed(UpdateErrorKind.malformedResponse);
   }
@@ -127,7 +140,7 @@ UpdateCheckResult evaluateRelease(Object? json, AppVersion current) {
   if (assets is! List<Object?>) {
     return const UpdateCheckFailed(UpdateErrorKind.malformedResponse);
   }
-  final installerName = installerFileName(version).toLowerCase();
+  final installerName = platform.assetName(version).toLowerCase();
   ReleaseAsset? installer;
   ReleaseAsset? checksum;
   for (final asset in assets.map(_parseAsset).nonNulls) {

@@ -8,6 +8,7 @@ import '../../core/l10n/strings.dart';
 import '../../core/theme/app_icons.dart';
 import '../../core/theme/nocturne_theme.dart';
 import '../../domain/app_settings.dart';
+import '../../domain/keyboard_keys.dart';
 import '../settings/settings_view_model.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_mark.dart';
@@ -402,7 +403,7 @@ class _Status extends StatelessWidget {
                   ? 'Turn the mouse on to apply'
                   : !shell.isOnline
                   ? 'Reconnect the mouse to apply'
-                  : 'Write changes to the mouse (Ctrl+S)',
+                  : 'Write changes to the mouse (${KeyLabels.save})',
               onPressed: edit.canApply ? () => unawaited(edit.apply()) : null,
             ),
           ],

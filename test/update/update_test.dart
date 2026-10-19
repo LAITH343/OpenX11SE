@@ -199,6 +199,33 @@ void main() {
       );
     });
 
+    test('picks the macOS archive for macOS', () {
+      final json = releaseJson();
+      expect(
+        evaluateRelease(json, v('1.0.0'), platform: UpdatePlatform.macos),
+        isA<UpdateCheckFailed>().having(
+          (f) => f.kind,
+          'kind',
+          UpdateErrorKind.noInstaller,
+        ),
+      );
+      const zip = 'OpenX11SE-macOS-1.2.0.zip';
+      json['assets'] = [
+        ...json['assets']! as List<Object?>,
+        {'name': zip, 'browser_download_url': 'https://github.com/d/$zip'},
+        {
+          'name': '$zip.sha256',
+          'browser_download_url': 'https://github.com/d/$zip.sha256',
+        },
+      ];
+      final result = evaluateRelease(
+        json,
+        v('1.0.0'),
+        platform: UpdatePlatform.macos,
+      );
+      expect((result as UpdateAvailable).release.installer.name, zip);
+    });
+
     test('classifies rate limits', () {
       final now = DateTime.utc(2026, 10, 9, 12);
       final limited = rateLimitFailure(
@@ -358,6 +385,85 @@ void main() {
         UpdateErrorKind.launchFailed,
       );
     }, testOn: 'windows');
+
+    test('finds the app bundle of the running executable', () {
+      expect(
+        macAppBundle('/Applications/OpenX11SE.app/Contents/MacOS/OpenX11SE'),
+        '/Applications/OpenX11SE.app',
+      );
+      expect(macAppBundle('/usr/local/bin/openx11se'), isNull);
+    });
+
+    test('stages the macOS update and launches the swap script', () async {
+      final apps = await Directory.systemTemp.createTemp('update_apps');
+      addTearDown(() => apps.delete(recursive: true));
+      final executable = '${apps.path}/OpenX11SE.app/Contents/MacOS/OpenX11SE';
+      final archive = File('${downloads.path}/OpenX11SE-macOS-1.2.0.zip')
+        ..writeAsStringSync('zip');
+      final ran = <(String, List<String>)>[];
+      final launched = <(String, List<String>)>[];
+      final repo = GitHubUpdateRepository(
+        downloadDirectory: downloads,
+        platform: UpdatePlatform.macos,
+        executable: executable,
+        runner: (path, args) async {
+          ran.add((path, args));
+          Directory('${args.last}/OpenX11SE.app').createSync(recursive: true);
+          return ProcessResult(0, 0, '', '');
+        },
+        launcher: (path, args) async {
+          launched.add((path, args));
+          return Process.start('true', const []);
+        },
+      );
+      expect(await repo.install(archive.path), isNull);
+      expect(ran.single.$1, '/usr/bin/ditto');
+      expect(ran.single.$2.take(3), ['-x', '-k', archive.path]);
+      final (shell, args) = launched.single;
+      expect(shell, '/bin/sh');
+      expect(args[1], macSwapScript);
+      expect(args[3], '$pid');
+      expect(args[4], '${downloads.path}/staged/OpenX11SE.app');
+      expect(args[5], '${apps.path}/OpenX11SE.app');
+    }, testOn: '!windows');
+
+    test('rejects a macOS archive without an app', () async {
+      final apps = await Directory.systemTemp.createTemp('update_apps');
+      addTearDown(() => apps.delete(recursive: true));
+      final archive = File('${downloads.path}/update.zip')
+        ..writeAsStringSync('zip');
+      var launched = false;
+      final repo = GitHubUpdateRepository(
+        downloadDirectory: downloads,
+        platform: UpdatePlatform.macos,
+        executable: '${apps.path}/OpenX11SE.app/Contents/MacOS/OpenX11SE',
+        runner: (_, _) async => ProcessResult(0, 0, '', ''),
+        launcher: (_, _) async {
+          launched = true;
+          return Process.start('true', const []);
+        },
+      );
+      expect(await repo.install(archive.path), UpdateErrorKind.launchFailed);
+      expect(launched, isFalse);
+      expect(
+        await GitHubUpdateRepository(
+          downloadDirectory: downloads,
+          platform: UpdatePlatform.macos,
+          executable: '/usr/local/bin/openx11se',
+        ).install(archive.path),
+        UpdateErrorKind.launchFailed,
+      );
+      expect(
+        await GitHubUpdateRepository(
+          downloadDirectory: downloads,
+          platform: UpdatePlatform.macos,
+          executable:
+              '/private/var/folders/x/AppTranslocation/1/d/OpenX11SE.app'
+              '/Contents/MacOS/OpenX11SE',
+        ).install(archive.path),
+        UpdateErrorKind.moveRequired,
+      );
+    }, testOn: '!windows');
   });
 
   group('UpdateViewModel', () {

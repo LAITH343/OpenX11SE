@@ -1,7 +1,7 @@
 # Hardware test checklist
 
 Run every item twice: once over the USB-C cable and once over the 2.4 GHz dongle (switch on the
-underside set to 2.4G). Run the full list for both builds: Windows desktop and Web (Chrome or Edge).
+underside set to 2.4G). Run the full list for every build: Windows desktop, macOS desktop and Web (Chrome or Edge).
 
 Record the build, firmware version and date for each run.
 
@@ -9,13 +9,15 @@ Record the build, firmware version and date for each run.
 |---|---|---|---|---|
 | Windows | Cable | | | |
 | Windows | Dongle | | | |
+| macOS | Cable | | | |
+| macOS | Dongle | | | |
 | Web | Cable | | | |
 | Web | Dongle | | | |
 
 ## 1. Connection
 
 - [ ] Start with no device connected: the "Connect your X11SE" state is shown.
-- [ ] Windows: plugging in the cable or dongle loads the settings within about 2 s without a click.
+- [ ] Windows and macOS: plugging in the cable or dongle loads the settings within about 2 s without a click.
 - [ ] Web: "Connect device" opens the browser prompt; choosing X11SE loads the settings.
 - [ ] Web: reloading the page reconnects to the granted device without the prompt.
 - [ ] Web: opening the page in Firefox or Safari shows the unsupported-browser state.

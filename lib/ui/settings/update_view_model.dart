@@ -132,7 +132,7 @@ class UpdateViewModel extends ChangeNotifier {
       UpdateErrorKind.serverError =>
         'GitHub couldn’t answer right now. Try again later.',
       UpdateErrorKind.noInstaller =>
-        'The latest release has no Windows installer yet.',
+        'The latest release has no update for this system yet.',
       UpdateErrorKind.checksumMissing =>
         'The release has no checksum, so the installer can’t be verified.',
       UpdateErrorKind.checksumMismatch =>
@@ -143,6 +143,8 @@ class UpdateViewModel extends ChangeNotifier {
       UpdateErrorKind.storageFailed =>
         'The installer couldn’t be saved to the temp folder.',
       UpdateErrorKind.launchFailed => 'The installer couldn’t be started.',
+      UpdateErrorKind.moveRequired =>
+        'Move OpenX11SE to the Applications folder, then try again.',
     };
   }
 

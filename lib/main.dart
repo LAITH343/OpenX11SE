@@ -20,6 +20,7 @@ import 'data/system/system_integration.dart';
 import 'data/update/update_repository.dart';
 import 'domain/app_settings.dart';
 import 'domain/app_version.dart';
+import 'domain/keyboard_keys.dart';
 import 'ui/buttons/buttons_view_model.dart';
 import 'ui/lighting/lighting_view_model.dart';
 import 'ui/macros/macro_library_view_model.dart';
@@ -37,6 +38,7 @@ import 'ui/widgets/toast_host.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  KeyLabels.apple = defaultTargetPlatform == TargetPlatform.macOS;
   _reportUncaughtErrors();
   final AppDatabase database;
   try {

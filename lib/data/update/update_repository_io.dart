@@ -8,7 +8,35 @@ import '../../domain/app_version.dart';
 import 'update_repository.dart';
 
 UpdateRepository createPlatformUpdateRepository() =>
-    Platform.isWindows ? GitHubUpdateRepository() : const NoUpdateRepository();
+    Platform.isWindows || Platform.isMacOS
+    ? GitHubUpdateRepository()
+    : const NoUpdateRepository();
+
+String? macAppBundle(String executable) {
+  final parts = executable.split('/');
+  if (parts.length < 4 ||
+      parts[parts.length - 2] != 'MacOS' ||
+      parts[parts.length - 3] != 'Contents' ||
+      !parts[parts.length - 4].endsWith('.app')) {
+    return null;
+  }
+  return parts.sublist(0, parts.length - 3).join('/');
+}
+
+const macSwapScript = r'''
+pid="$1"; src="$2"; dst="$3"
+while kill -0 "$pid" 2>/dev/null; do sleep 0.2; done
+new="$dst.new"; old="$dst.old"
+rm -rf "$new" "$old"
+if /usr/bin/ditto "$src" "$new"; then
+  if mv "$dst" "$old"; then
+    if mv "$new" "$dst"; then rm -rf "$old"; else mv "$old" "$dst"; fi
+  fi
+fi
+rm -rf "$new" "$(dirname "$src")"
+/usr/bin/xattr -dr com.apple.quarantine "$dst" 2>/dev/null
+/usr/bin/open "$dst"
+''';
 
 Future<String> sha256OfFile(File file) async =>
     (await sha256.bind(file.openRead()).first).toString();
@@ -29,7 +57,15 @@ class GitHubUpdateRepository implements UpdateRepository {
     HttpClient Function()? client,
     Directory? downloadDirectory,
     Future<Process> Function(String, List<String>)? launcher,
-  }) : _client = client ?? HttpClient.new,
+    Future<ProcessResult> Function(String, List<String>)? runner,
+    UpdatePlatform? platform,
+    String? executable,
+  }) : platform =
+           platform ??
+           (Platform.isMacOS ? UpdatePlatform.macos : UpdatePlatform.windows),
+       _executable = executable ?? Platform.resolvedExecutable,
+       _run = runner ?? Process.run,
+       _client = client ?? HttpClient.new,
        _downloads =
            downloadDirectory ??
            Directory(
@@ -42,6 +78,9 @@ class GitHubUpdateRepository implements UpdateRepository {
   static const _idleTimeout = Duration(seconds: 30);
   static const _maxChecksumBytes = 4096;
 
+  final UpdatePlatform platform;
+  final String _executable;
+  final Future<ProcessResult> Function(String, List<String>) _run;
   final HttpClient Function() _client;
   final Directory _downloads;
   final Future<Process> Function(String, List<String>) _launch;
@@ -74,7 +113,7 @@ class GitHubUpdateRepository implements UpdateRepository {
       } on FormatException {
         return const UpdateCheckFailed(UpdateErrorKind.malformedResponse);
       }
-      return evaluateRelease(json, current);
+      return evaluateRelease(json, current, platform: platform);
     } on Object catch (error) {
       return UpdateCheckFailed(_networkKind(error));
     } finally {
@@ -159,10 +198,65 @@ class GitHubUpdateRepository implements UpdateRepository {
   Future<UpdateErrorKind?> install(String installerPath) async {
     if (!File(installerPath).existsSync()) return UpdateErrorKind.launchFailed;
     try {
+      if (platform == UpdatePlatform.macos) {
+        return await _installMacApp(installerPath);
+      }
       await _launch(installerPath, installerArguments);
       return null;
     } on Object {
       return UpdateErrorKind.launchFailed;
+    }
+  }
+
+  Future<UpdateErrorKind?> _installMacApp(String archivePath) async {
+    final bundle = macAppBundle(_executable);
+    if (bundle == null) return UpdateErrorKind.launchFailed;
+    if (bundle.contains('/AppTranslocation/') ||
+        !await _isWritable(File(bundle).parent)) {
+      return UpdateErrorKind.moveRequired;
+    }
+    final staging = Directory('${_downloads.path}/staged');
+    await _deleteQuietly(staging);
+    await staging.create(recursive: true);
+    final extract = await _run('/usr/bin/ditto', [
+      '-x',
+      '-k',
+      archivePath,
+      staging.path,
+    ]);
+    if (extract.exitCode != 0) {
+      await _deleteQuietly(staging);
+      return UpdateErrorKind.launchFailed;
+    }
+    final app = (await staging.list().toList())
+        .whereType<Directory>()
+        .where((d) => d.path.endsWith('.app'))
+        .firstOrNull;
+    if (app == null) {
+      await _deleteQuietly(staging);
+      return UpdateErrorKind.launchFailed;
+    }
+    await _launch('/bin/sh', [
+      '-c',
+      macSwapScript,
+      'openx11se-update',
+      '$pid',
+      app.path,
+      bundle,
+    ]);
+    return null;
+  }
+
+  static Future<bool> _isWritable(Directory directory) async {
+    final probe = File(
+      '${directory.path}/.openx11se-update-${DateTime.now().microsecondsSinceEpoch}',
+    );
+    try {
+      await probe.writeAsBytes(const []);
+      await probe.delete();
+      return true;
+    } on FileSystemException {
+      return false;
     }
   }
 

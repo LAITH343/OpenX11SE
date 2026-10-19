@@ -126,6 +126,7 @@ const Map<String, String> arabicStrings = {
   "No other button is Left click — you'd lose the ability to click.":
       'لا يوجد زر آخر للنقر الأيسر — ستفقد القدرة على النقر.',
   'Minimise to tray': 'تصغير إلى شريط النظام',
+  'Keep in menu bar': 'الإبقاء في شريط القوائم',
   'Sleep and power settings': 'إعدادات السكون والطاقة',
   'DPI stages': 'مراحل DPI',
   'Changed — not applied yet': 'تم التغيير — لم يُطبَّق بعد',
@@ -376,6 +377,7 @@ const Map<String, String> arabicStrings = {
   'Turn the mouse on to apply': 'شغّل الفأرة للتطبيق',
   'Reconnect the mouse to apply': 'أعد توصيل الفأرة للتطبيق',
   'Write changes to the mouse (Ctrl+S)': 'اكتب التغييرات على الفأرة (Ctrl+S)',
+  'Write changes to the mouse (⌘S)': 'اكتب التغييرات على الفأرة (⌘S)',
   'No changes to apply': 'لا توجد تغييرات للتطبيق',
   'Checking…': 'جارٍ التحقق…',
   'Dongle connected · retrying automatically':
@@ -423,10 +425,10 @@ const Map<String, String> arabicStrings = {
   'Applying…': 'جارٍ التطبيق…',
   'Saved': 'محفوظ',
   'This platform isn’t supported': 'هذه المنصة غير مدعومة',
-  'OpenX11SE currently supports Windows desktop.':
-      'يدعم OpenX11SE حاليًا سطح مكتب Windows.',
-  'Run OpenX11SE on Windows 10 1809 or later.':
-      'شغّل OpenX11SE على Windows 10 1809 أو أحدث.',
+  'OpenX11SE currently supports Windows and macOS desktop.':
+      'يدعم OpenX11SE حاليًا سطح مكتب Windows وmacOS.',
+  'Run OpenX11SE on Windows 10 1809 or later, or macOS 12 or later.':
+      'شغّل OpenX11SE على Windows 10 1809 أو أحدث، أو macOS 12 أو أحدث.',
   'Device connection unavailable': 'الاتصال بالجهاز غير متاح',
   'Device': 'الجهاز',
   'Use colour': 'استخدام اللون',
@@ -463,8 +465,10 @@ const Map<String, String> arabicStrings = {
       'أعاد GitHub استجابة غير متوقعة. حاول لاحقًا.',
   'GitHub couldn’t answer right now. Try again later.':
       'تعذّر على GitHub الرد الآن. حاول لاحقًا.',
-  'The latest release has no Windows installer yet.':
-      'لا يحتوي أحدث إصدار على مثبّت Windows بعد.',
+  'Move OpenX11SE to the Applications folder, then try again.':
+      'انقل OpenX11SE إلى مجلد التطبيقات، ثم حاول مجددًا.',
+  'The latest release has no update for this system yet.':
+      'لا يحتوي أحدث إصدار على تحديث لهذا النظام بعد.',
   'The release has no checksum, so the installer can’t be verified.':
       'لا يحتوي الإصدار على مجموع تحقق، لذا لا يمكن التحقق من المثبّت.',
   'The downloaded installer failed verification and was deleted. Nothing was installed.':

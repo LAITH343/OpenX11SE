@@ -13,8 +13,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -29,7 +27,6 @@ jobs:
           if ("v$version" -ne '${{ github.ref_name }}') {
             throw "Tag ${{ github.ref_name }} does not match pubspec version $version"
           }
-          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
@@ -42,16 +39,91 @@ jobs:
         shell: pwsh
         run: ./tool/build_windows_installer.ps1 -Iscc "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            build/installer/OpenX11SE-Setup-*.exe
+            build/installer/OpenX11SE-Setup-*.exe.sha256
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Check tag matches pubspec version
+        run: |
+          version=$(sed -n 's/^version:[[:space:]]*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' pubspec.yaml | head -n 1)
+          if [ "v$version" != '${{ github.ref_name }}' ]; then
+            echo "Tag ${{ github.ref_name }} does not match pubspec version $version" >&2
+            exit 1
+          fi
+
+      - name: Import signing certificate
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password=$(uuidgen)
+          printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/signing.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/signing.p12" -k "$keychain" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain"
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/signing.p12"
+
+      - run: flutter pub get
+
+      - run: flutter test
+
+      - name: Build app archive
+        run: ./tool/build_macos_release.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: |
+            build/macos-release/OpenX11SE-macOS-*.zip
+            build/macos-release/OpenX11SE-macOS-*.zip.sha256
+          if-no-files-found: error
+
+      - name: Remove signing keychain
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
+
+  release:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
       - name: Publish release
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $previous = git describe --tags --abbrev=0 --match 'v*.*.*' '${{ github.ref_name }}^' 2>$null
-          $range = if ($LASTEXITCODE -eq 0 -and $previous) { "$previous..${{ github.ref_name }}" } else { '${{ github.ref_name }}' }
-          $notes = git log $range --no-merges --pretty=format:'- %s'
-          if (-not $notes) { $notes = '- Maintenance release' }
-          $notes | Out-File -FilePath release-notes.md -Encoding utf8
-          $installer = "build/installer/OpenX11SE-Setup-$env:VERSION.exe"
-          gh release create '${{ github.ref_name }}' $installer "$installer.sha256" --title "OpenX11SE $env:VERSION" --notes-file release-notes.md
-
+          version='${{ github.ref_name }}'
+          version="${version#v}"
+          if previous=$(git describe --tags --abbrev=0 --match 'v*.*.*' '${{ github.ref_name }}^' 2>/dev/null); then
+            range="$previous..${{ github.ref_name }}"
+          else
+            range='${{ github.ref_name }}'
+          fi
+          git log "$range" --no-merges --pretty=format:'- %s' > release-notes.md
+          if [ ! -s release-notes.md ]; then echo '- Maintenance release' > release-notes.md; fi
+          gh release create '${{ github.ref_name }}' dist/* --title "OpenX11SE $version" --notes-file release-notes.md

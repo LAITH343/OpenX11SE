@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -235,7 +236,9 @@ class _BehaviourCard extends StatelessWidget {
           ),
         if (vm.supportsTray)
           ToggleRow(
-            title: 'Minimise to tray',
+            title: defaultTargetPlatform == TargetPlatform.macOS
+                ? 'Keep in menu bar'
+                : 'Minimise to tray',
             value: vm.minimiseToTray,
             onChanged: (v) => unawaited(vm.setMinimiseToTray(v)),
           ),

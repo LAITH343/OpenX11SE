@@ -430,11 +430,11 @@ class _FunctionTileState extends State<_FunctionTile> {
 class _KeyboardPane extends StatelessWidget {
   const _KeyboardPane();
 
-  static const _modifiers = [
-    ('Ctrl', KeyModifiers(ctrl: true)),
-    ('Shift', KeyModifiers(shift: true)),
-    ('Alt', KeyModifiers(alt: true)),
-    ('Win', KeyModifiers(win: true)),
+  static List<(String, KeyModifiers)> get _modifiers => [
+    (KeyLabels.ctrl, const KeyModifiers(ctrl: true)),
+    ('Shift', const KeyModifiers(shift: true)),
+    (KeyLabels.alt, const KeyModifiers(alt: true)),
+    (KeyLabels.win, const KeyModifiers(win: true)),
   ];
 
   static bool _has(KeyModifiers set, KeyModifiers one) =>
