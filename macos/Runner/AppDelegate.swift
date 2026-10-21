@@ -3,8 +3,10 @@ import FlutterMacOS
 
 @main
 class AppDelegate: FlutterAppDelegate {
+  var keepRunningInMenuBar = false
+
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    return true
+    return !keepRunningInMenuBar
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {

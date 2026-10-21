@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -86,6 +87,8 @@ abstract class DesktopSystemIntegration
 
   bool get trayIconIsTemplate => false;
 
+  Future<void> keepRunningWhenHidden(bool enabled) async {}
+
   @override
   bool get supportsStartup => true;
 
@@ -101,6 +104,7 @@ abstract class DesktopSystemIntegration
       trayManager.addListener(this);
       windowManager.addListener(this);
     }
+    await keepRunningWhenHidden(enabled);
     await windowManager.setPreventClose(enabled);
     if (!enabled) {
       await trayManager.destroy();
@@ -170,6 +174,12 @@ class MacSystemIntegration extends DesktopSystemIntegration {
 
   @override
   bool get trayIconIsTemplate => true;
+
+  static const _channel = MethodChannel('openx11se/app');
+
+  @override
+  Future<void> keepRunningWhenHidden(bool enabled) =>
+      _channel.invokeMethod<void>('setKeepRunningInMenuBar', enabled);
 
   File get launchAgent => File('$_home/Library/LaunchAgents/$label.plist');
 
