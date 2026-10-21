@@ -17,12 +17,9 @@ codesign --force --deep --timestamp=none --sign "$identity" "$app"
 codesign --verify --deep --strict "$app"
 
 out="build/macos-release"
-zip="OpenX11SE-macOS-$version.zip"
 dmg="OpenX11SE-macOS-$version.dmg"
 mkdir -p "$out"
-rm -f "$out/$zip" "$out/$zip.sha256" "$out/$dmg" "$out/$dmg.sha256"
-
-ditto -c -k --sequesterRsrc --keepParent "$app" "$out/$zip"
+rm -f "$out/$dmg" "$out/$dmg.sha256"
 
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
@@ -38,6 +35,5 @@ until hdiutil create -volname OpenX11SE -srcfolder "$stage" -fs HFS+ -format UDZ
 done
 codesign --force --timestamp=none --sign "$identity" "$out/$dmg"
 
-(cd "$out" && shasum -a 256 "$zip" > "$zip.sha256" && shasum -a 256 "$dmg" > "$dmg.sha256")
+(cd "$out" && shasum -a 256 "$dmg" > "$dmg.sha256")
 echo "$out/$dmg"
-echo "$out/$zip"

@@ -9,8 +9,8 @@ both of that platform's assets:
 - macOS: `OpenX11SE-macOS-<version>.dmg` and `OpenX11SE-macOS-<version>.dmg.sha256`
   (`<sha256>  OpenX11SE-macOS-<version>.dmg`)
 
-Every release also carries `OpenX11SE-macOS-<version>.zip` and `.zip.sha256`. macOS 1.2.0 looks for the
-zip instead of the disk image, so keep publishing it for as long as 1.2.0 installs should be able to update.
+macOS 1.2.0 looked for a `.zip` instead of the disk image. Releases no longer carry it, so 1.2.0 installs must
+be updated once with the install script or the disk image.
 
 The tag must be `v<version>`, matching `version` in `pubspec.yaml` (build number after `+` is ignored).
 
@@ -25,7 +25,7 @@ The tag must be `v<version>`, matching `version` in `pubspec.yaml` (build number
    ```
 
 3. `.github/workflows/release.yml` runs the tests, builds the Windows installer with Inno Setup and the
-   signed macOS disk image and zip, writes the checksums and publishes the GitHub release with all six assets. The release notes list every commit message
+   signed macOS disk image, writes the checksums and publishes the GitHub release with all four assets. The release notes list every commit message
    since the previous `v*.*.*` tag (all commits for the first release); they are shown in the update dialog
    and can be edited on GitHub afterwards.
 
@@ -54,11 +54,11 @@ again after updating.
    ./tool/build_macos_release.sh
    ```
 
-   Output: `build/macos-release/OpenX11SE-macOS-<version>.dmg`, `.zip` and their `.sha256` files.
-4. Create the release with all six files:
+   Output: `build/macos-release/OpenX11SE-macOS-<version>.dmg` and `.dmg.sha256`.
+4. Create the release with all four files:
 
    ```powershell
-   gh release create v1.1.0 build\installer\OpenX11SE-Setup-1.1.0.exe build\installer\OpenX11SE-Setup-1.1.0.exe.sha256 build\macos-release\OpenX11SE-macOS-1.1.0.dmg build\macos-release\OpenX11SE-macOS-1.1.0.dmg.sha256 build\macos-release\OpenX11SE-macOS-1.1.0.zip build\macos-release\OpenX11SE-macOS-1.1.0.zip.sha256 --title "OpenX11SE 1.1.0" --notes-file notes.md
+   gh release create v1.1.0 build\installer\OpenX11SE-Setup-1.1.0.exe build\installer\OpenX11SE-Setup-1.1.0.exe.sha256 build\macos-release\OpenX11SE-macOS-1.1.0.dmg build\macos-release\OpenX11SE-macOS-1.1.0.dmg.sha256 --title "OpenX11SE 1.1.0" --notes-file notes.md
    ```
 
 Do not mark it as a pre-release or leave it as a draft; those are skipped by the updater.
