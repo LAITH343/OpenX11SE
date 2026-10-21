@@ -41,22 +41,22 @@ class LocalSystemNotifications implements SystemNotifications {
 
   Future<bool> _start() async {
     try {
-      return await _plugin.initialize(
-            settings: const InitializationSettings(
-              macOS: DarwinInitializationSettings(
-                requestAlertPermission: false,
-                requestBadgePermission: false,
-                requestSoundPermission: false,
-              ),
-              linux: LinuxInitializationSettings(defaultActionName: 'Open'),
-              windows: WindowsInitializationSettings(
-                appName: _appName,
-                appUserModelId: 'LAITH343.OpenX11SE',
-                guid: '8f3c2a71-4d5e-4b9a-9c1f-2e7d6a0b5c34',
-              ),
-            ),
-          ) ??
-          false;
+      final ready = await _plugin.initialize(
+        settings: const InitializationSettings(
+          macOS: DarwinInitializationSettings(
+            requestAlertPermission: false,
+            requestBadgePermission: false,
+            requestSoundPermission: false,
+          ),
+          linux: LinuxInitializationSettings(defaultActionName: 'Open'),
+          windows: WindowsInitializationSettings(
+            appName: _appName,
+            appUserModelId: 'LAITH343.OpenX11SE',
+            guid: '8f3c2a71-4d5e-4b9a-9c1f-2e7d6a0b5c34',
+          ),
+        ),
+      );
+      return defaultTargetPlatform == TargetPlatform.macOS || (ready ?? false);
     } on Object {
       return false;
     }
