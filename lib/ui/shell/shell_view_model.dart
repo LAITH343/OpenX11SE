@@ -108,6 +108,13 @@ class ShellViewModel extends ChangeNotifier {
   String? get failureText {
     final state = _state;
     if (state is! DeviceFailed) return null;
+    if (state.error case DeviceOpenException(
+      cause: HidException(permissionDenied: true),
+    )) {
+      return 'OpenX11SE is not allowed to open the mouse. Run the install '
+          'script again to add the device permission rule, then replug the '
+          'mouse.';
+    }
     if (state.error is DeviceOpenException) {
       return 'The mouse could not be opened. Close other mouse software, then '
           'click Check again.';

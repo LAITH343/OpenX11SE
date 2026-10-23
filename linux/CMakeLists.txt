@@ -7,7 +7,7 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "openx11se")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.openx11se")
+set(APPLICATION_ID "io.github.laith343.openx11se")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -73,6 +73,9 @@ set_target_properties(${BINARY_NAME}
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+
+# Newer libayatana-appindicator deprecates the API tray_manager uses.
+target_compile_options(tray_manager_plugin PRIVATE -Wno-deprecated-declarations)
 
 
 # === Installation ===

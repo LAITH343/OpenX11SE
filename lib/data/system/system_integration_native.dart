@@ -11,6 +11,7 @@ import 'system_integration.dart';
 SystemIntegration createPlatformIntegration() {
   if (Platform.isWindows) return WindowsSystemIntegration();
   if (Platform.isMacOS) return MacSystemIntegration();
+  if (Platform.isLinux) return LinuxSystemIntegration();
   return const NoSystemIntegration();
 }
 
@@ -217,3 +218,54 @@ String launchAgentPlist() =>
 </dict>
 </plist>
 ''';
+
+class LinuxSystemIntegration extends DesktopSystemIntegration {
+  LinuxSystemIntegration({Map<String, String>? environment, String? executable})
+    : _environment = environment ?? Platform.environment,
+      _executable = executable ?? Platform.resolvedExecutable;
+
+  static const appId = 'io.github.laith343.openx11se';
+
+  final Map<String, String> _environment;
+  final String _executable;
+
+  @override
+  String get trayIcon => 'assets/icons/tray_linux.png';
+
+  File get autostartEntry {
+    final config =
+        _environment['XDG_CONFIG_HOME'] ??
+        '${_environment['HOME'] ?? ''}/.config';
+    return File('$config/autostart/$appId.desktop');
+  }
+
+  /// The AppImage when running from one, otherwise the bundle executable.
+  String get launchPath => _environment['APPIMAGE'] ?? _executable;
+
+  @override
+  Future<void> setLaunchAtStartup(bool enabled) async {
+    final entry = autostartEntry;
+    if (!enabled) {
+      if (await entry.exists()) await entry.delete();
+      return;
+    }
+    await entry.parent.create(recursive: true);
+    await entry.writeAsString(autostartDesktopEntry(launchPath));
+  }
+}
+
+String autostartDesktopEntry(String executable) {
+  final quoted = executable
+      .replaceAll(r'\', r'\\\\')
+      .replaceAll('"', r'\\"')
+      .replaceAll(r'$', r'\\$')
+      .replaceAll('`', r'\\`');
+  return '''[Desktop Entry]
+Type=Application
+Name=OpenX11SE
+Exec="$quoted" $startMinimisedArgument
+Icon=${LinuxSystemIntegration.appId}
+Terminal=false
+X-GNOME-Autostart-enabled=true
+''';
+}

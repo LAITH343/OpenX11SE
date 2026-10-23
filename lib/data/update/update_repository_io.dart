@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -7,10 +8,19 @@ import 'package:crypto/crypto.dart';
 import '../../domain/app_version.dart';
 import 'update_repository.dart';
 
-UpdateRepository createPlatformUpdateRepository() =>
-    Platform.isWindows || Platform.isMacOS
-    ? GitHubUpdateRepository()
-    : const NoUpdateRepository();
+UpdateRepository createPlatformUpdateRepository() {
+  if (Platform.isWindows || Platform.isMacOS) return GitHubUpdateRepository();
+  // Only the x86_64 AppImage is published, and only an AppImage can swap
+  // itself for the new one.
+  final appImage = Platform.environment['APPIMAGE'];
+  if (Platform.isLinux && Abi.current() == Abi.linuxX64 && appImage != null) {
+    return GitHubUpdateRepository(
+      platform: UpdatePlatform.linux,
+      appImage: appImage,
+    );
+  }
+  return const NoUpdateRepository();
+}
 
 String? macAppBundle(String executable) {
   final parts = executable.split('/');
@@ -38,6 +48,19 @@ rm -rf "$new" "$(dirname "$src")"
 /usr/bin/open "$dst"
 ''';
 
+const linuxSwapScript = r'''
+pid="$1"; src="$2"; dst="$3"
+while kill -0 "$pid" 2>/dev/null; do sleep 0.2; done
+new="$dst.new"
+if cp "$src" "$new" && chmod 755 "$new"; then
+  mv -f "$new" "$dst" || rm -f "$new"
+else
+  rm -f "$new"
+fi
+rm -f "$src"
+"$dst" >/dev/null 2>&1 &
+''';
+
 Future<String> sha256OfFile(File file) async =>
     (await sha256.bind(file.openRead()).first).toString();
 
@@ -60,6 +83,7 @@ class GitHubUpdateRepository implements UpdateRepository {
     Future<ProcessResult> Function(String, List<String>)? runner,
     UpdatePlatform? platform,
     String? executable,
+    this.appImage,
   }) : platform =
            platform ??
            (Platform.isMacOS ? UpdatePlatform.macos : UpdatePlatform.windows),
@@ -79,6 +103,9 @@ class GitHubUpdateRepository implements UpdateRepository {
   static const _maxChecksumBytes = 4096;
 
   final UpdatePlatform platform;
+
+  /// The running AppImage, replaced in place on Linux.
+  final String? appImage;
   final String _executable;
   final Future<ProcessResult> Function(String, List<String>) _run;
   final HttpClient Function() _client;
@@ -201,6 +228,9 @@ class GitHubUpdateRepository implements UpdateRepository {
       if (platform == UpdatePlatform.macos) {
         return await _installMacApp(installerPath);
       }
+      if (platform == UpdatePlatform.linux) {
+        return await _installAppImage(installerPath);
+      }
       await _launch(installerPath, installerArguments);
       return null;
     } on Object {
@@ -255,6 +285,23 @@ class GitHubUpdateRepository implements UpdateRepository {
       '$pid',
       app.path,
       bundle,
+    ]);
+    return null;
+  }
+
+  Future<UpdateErrorKind?> _installAppImage(String imagePath) async {
+    final target = appImage;
+    if (target == null) return UpdateErrorKind.launchFailed;
+    if (!await _isWritable(File(target).parent)) {
+      return UpdateErrorKind.folderNotWritable;
+    }
+    await _launch('/bin/sh', [
+      '-c',
+      linuxSwapScript,
+      'openx11se-update',
+      '$pid',
+      imagePath,
+      target,
     ]);
     return null;
   }

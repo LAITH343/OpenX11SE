@@ -35,6 +35,7 @@ flutter:
   assets:
     - assets/icons/tray.ico
     - assets/icons/tray_macos.png
+    - assets/icons/tray_linux.png
 
   fonts:
     - family: Inter

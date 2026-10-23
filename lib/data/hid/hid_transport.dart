@@ -51,10 +51,15 @@ class HidDeviceInfo {
 }
 
 class HidException implements Exception {
-  const HidException(this.message, {this.disconnected = false});
+  const HidException(
+    this.message, {
+    this.disconnected = false,
+    this.permissionDenied = false,
+  });
 
   final String message;
   final bool disconnected;
+  final bool permissionDenied;
 
   @override
   String toString() => 'HidException: $message';

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=OpenX11SE
+Comment=Configure the Attack Shark X11SE mouse
+Exec=openx11se
+Icon=io.github.laith343.openx11se
+Terminal=false
+Categories=Settings;HardwareSettings;
+StartupWMClass=io.github.laith343.openx11se

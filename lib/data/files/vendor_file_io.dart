@@ -3,7 +3,8 @@ import 'dart:typed_data';
 
 const _vendorProfilePath = r'\Attack Shark Software\data\ms_10\pro.data';
 
-final bool vendorImportSupported = Platform.isWindows || Platform.isMacOS;
+final bool vendorImportSupported =
+    Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
 Future<Uint8List?> readInstalledVendorProfile() async {
   if (!Platform.isWindows) return null;

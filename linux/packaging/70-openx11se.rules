@@ -1,0 +1,4 @@
+# Attack Shark X11SE: let the user at the seat open the mouse's hidraw nodes
+# so OpenX11SE can read and change its settings without root.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1d57", ATTRS{idProduct}=="2125", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1d57", ATTRS{idProduct}=="fa60", TAG+="uaccess"

@@ -145,6 +145,9 @@ class UpdateViewModel extends ChangeNotifier {
       UpdateErrorKind.launchFailed => 'The installer couldn’t be started.',
       UpdateErrorKind.moveRequired =>
         'Move OpenX11SE to the Applications folder, then try again.',
+      UpdateErrorKind.folderNotWritable =>
+        'OpenX11SE can’t replace itself in its folder. Update it with the '
+            'install script instead.',
     };
   }
 

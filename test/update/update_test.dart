@@ -226,6 +226,24 @@ void main() {
       expect(release.checksum.name, '$dmg.sha256');
     });
 
+    test('picks the x86_64 AppImage for Linux', () {
+      final json = releaseJson();
+      const image = 'OpenX11SE-Linux-1.2.0-x86_64.AppImage';
+      json['assets'] = [
+        ...json['assets']! as List<Object?>,
+        for (final name in [image, '$image.sha256'])
+          {'name': name, 'browser_download_url': 'https://github.com/d/$name'},
+      ];
+      final result = evaluateRelease(
+        json,
+        v('1.0.0'),
+        platform: UpdatePlatform.linux,
+      );
+      final release = (result as UpdateAvailable).release;
+      expect(release.installer.name, image);
+      expect(release.checksum.name, '$image.sha256');
+    });
+
     test('classifies rate limits', () {
       final now = DateTime.utc(2026, 10, 9, 12);
       final limited = rateLimitFailure(
@@ -448,6 +466,80 @@ void main() {
       expect(args[4], '${downloads.path}/staged/OpenX11SE.app');
       expect(args[5], '${apps.path}/OpenX11SE.app');
     }, testOn: '!windows');
+
+    test('launches the AppImage swap script', () async {
+      final bin = await Directory.systemTemp.createTemp('update_bin');
+      addTearDown(() => bin.delete(recursive: true));
+      final image = File('${downloads.path}/OpenX11SE-Linux-1.2.0.AppImage')
+        ..writeAsStringSync('new');
+      final launched = <(String, List<String>)>[];
+      final repo = GitHubUpdateRepository(
+        downloadDirectory: downloads,
+        platform: UpdatePlatform.linux,
+        appImage: '${bin.path}/OpenX11SE.AppImage',
+        launcher: (path, args) async {
+          launched.add((path, args));
+          return Process.start('true', const []);
+        },
+      );
+
+      expect(await repo.install(image.path), isNull);
+      final (shell, args) = launched.single;
+      expect(shell, '/bin/sh');
+      expect(args[1], linuxSwapScript);
+      expect(args[3], '$pid');
+      expect(args[4], image.path);
+      expect(args[5], '${bin.path}/OpenX11SE.AppImage');
+    }, testOn: 'linux');
+
+    test('the AppImage swap script replaces and relaunches', () async {
+      final bin = await Directory.systemTemp.createTemp('update_bin');
+      addTearDown(() => bin.delete(recursive: true));
+      final target = File('${bin.path}/OpenX11SE.AppImage')
+        ..writeAsStringSync('old');
+      final marker = File('${bin.path}/started');
+      final image = File('${downloads.path}/OpenX11SE-Linux-1.2.0.AppImage')
+        ..writeAsStringSync('#!/bin/sh\ntouch "${marker.path}"\n');
+      final exited = await Process.start('true', const []);
+      await exited.exitCode;
+
+      final result = await Process.run('/bin/sh', [
+        '-c',
+        linuxSwapScript,
+        'openx11se-update',
+        '${exited.pid}',
+        image.path,
+        target.path,
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(target.readAsStringSync(), startsWith('#!/bin/sh'));
+      expect(target.statSync().modeString(), 'rwxr-xr-x');
+      expect(image.existsSync(), isFalse);
+      expect(File('${target.path}.new').existsSync(), isFalse);
+      for (var i = 0; i < 50 && !marker.existsSync(); i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(marker.existsSync(), isTrue);
+    }, testOn: 'linux');
+
+    test('needs a writable AppImage folder', () async {
+      final image = File('${downloads.path}/OpenX11SE-Linux-1.2.0.AppImage')
+        ..writeAsStringSync('new');
+      Future<UpdateErrorKind?> install(String? appImage) =>
+          GitHubUpdateRepository(
+            downloadDirectory: downloads,
+            platform: UpdatePlatform.linux,
+            appImage: appImage,
+            launcher: (_, _) => fail('should not launch'),
+          ).install(image.path);
+
+      expect(
+        await install('/proc/OpenX11SE.AppImage'),
+        UpdateErrorKind.folderNotWritable,
+      );
+      expect(await install(null), UpdateErrorKind.launchFailed);
+    }, testOn: 'linux');
 
     test('rejects a macOS image without an app', () async {
       final apps = await Directory.systemTemp.createTemp('update_apps');

@@ -15,6 +15,7 @@ enum UpdateErrorKind {
   storageFailed,
   launchFailed,
   moveRequired,
+  folderNotWritable,
 }
 
 sealed class UpdateCheckResult {
@@ -108,11 +109,13 @@ const installerArguments = [
 
 enum UpdatePlatform {
   windows,
-  macos;
+  macos,
+  linux;
 
   String assetName(AppVersion version) => switch (this) {
     windows => 'OpenX11SE-Setup-$version.exe',
     macos => 'OpenX11SE-macOS-$version.dmg',
+    linux => 'OpenX11SE-Linux-$version-x86_64.AppImage',
   };
 }
 

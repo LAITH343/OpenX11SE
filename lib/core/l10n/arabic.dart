@@ -430,10 +430,14 @@ const Map<String, String> arabicStrings = {
   'Applying…': 'جارٍ التطبيق…',
   'Saved': 'محفوظ',
   'This platform isn’t supported': 'هذه المنصة غير مدعومة',
-  'OpenX11SE currently supports Windows and macOS desktop.':
-      'يدعم OpenX11SE حاليًا سطح مكتب Windows وmacOS.',
-  'Run OpenX11SE on Windows 10 1809 or later, or macOS 12 or later.':
-      'شغّل OpenX11SE على Windows 10 1809 أو أحدث، أو macOS 12 أو أحدث.',
+  'OpenX11SE currently supports Windows, macOS and Linux desktop.':
+      'يدعم OpenX11SE حاليًا سطح مكتب Windows وmacOS وLinux.',
+  'Run OpenX11SE on Windows 10 1809 or later, macOS 12 or later, or x86_64 Linux.':
+      'شغّل OpenX11SE على Windows 10 1809 أو أحدث، أو macOS 12 أو أحدث، أو Linux بمعمارية x86_64.',
+  'OpenX11SE is not allowed to open the mouse. Run the install script again to add the device permission rule, then replug the mouse.':
+      'لا يملك OpenX11SE إذنًا لفتح الفأرة. شغّل سكربت التثبيت مرة أخرى لإضافة قاعدة أذونات الجهاز، ثم أعد توصيل الفأرة.',
+  'OpenX11SE can’t replace itself in its folder. Update it with the install script instead.':
+      'لا يستطيع OpenX11SE استبدال نفسه في مجلده. حدّثه باستخدام سكربت التثبيت بدلًا من ذلك.',
   'Device connection unavailable': 'الاتصال بالجهاز غير متاح',
   'Device': 'الجهاز',
   'Use colour': 'استخدام اللون',

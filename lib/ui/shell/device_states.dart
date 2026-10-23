@@ -162,11 +162,13 @@ class _UnsupportedState extends StatelessWidget {
         ),
         const _Heading(
           title: 'This platform isn’t supported',
-          body: 'OpenX11SE currently supports Windows and macOS desktop.',
+          body:
+              'OpenX11SE currently supports Windows, macOS and Linux desktop.',
         ),
         const _Step(
           1,
-          'Run OpenX11SE on Windows 10 1809 or later, or macOS 12 or later.',
+          'Run OpenX11SE on Windows 10 1809 or later, macOS 12 or later, or '
+          'x86_64 Linux.',
         ),
       ],
     );

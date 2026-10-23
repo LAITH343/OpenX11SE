@@ -90,6 +90,19 @@ void main() {
     expect(edit.canApply, isFalse);
   });
 
+  test('explains open failures, including missing device permission', () async {
+    transport.openError = const HidException('Busy');
+    transport.setPresent([wiredDevice]);
+    await until(() => shell.failureText != null);
+    expect(shell.failureText, contains('Close other mouse software'));
+
+    transport
+      ..openError = const HidException('Denied', permissionDenied: true)
+      ..setPresent(const [])
+      ..setPresent([wiredDevice]);
+    await until(() => shell.failureText?.contains('install script') ?? false);
+  });
+
   test('reads the device and stages its settings', () async {
     await connect();
     expect(edit.saved, defaults);
