@@ -1,7 +1,7 @@
 # Hardware test checklist
 
 Run every item twice: once over the USB-C cable and once over the 2.4 GHz dongle (switch on the
-underside set to 2.4G). Run the full list for every build: Windows desktop, macOS desktop, Linux desktop (AppImage) and Web (Chrome or Edge).
+underside set to 2.4G). Run the full list for every build: Windows, macOS and Linux (AppImage).
 
 Record the build, firmware version and date for each run.
 
@@ -13,17 +13,12 @@ Record the build, firmware version and date for each run.
 | macOS | Dongle | | | |
 | Linux | Cable | | | |
 | Linux | Dongle | | | |
-| Web | Cable | | | |
-| Web | Dongle | | | |
 
 ## 1. Connection
 
 - [ ] Start with no device connected: the "Connect your X11SE" state is shown.
 - [ ] Windows, macOS and Linux: plugging in the cable or dongle loads the settings within about 2 s without a click.
-- [ ] Web: "Connect device" opens the browser prompt; choosing X11SE loads the settings.
-- [ ] Web: reloading the page reconnects to the granted device without the prompt.
-- [ ] Web: opening the page in Firefox or Safari shows the unsupported-browser state.
-- [ ] Web: opening the page over plain `http://` (not localhost) shows the secure-connection state.
+- [ ] Linux: without the udev rule, the "not allowed to open the mouse" message is shown.
 - [ ] Header shows Wired or 2.4 GHz and the firmware version.
 - [ ] With the cable and the dongle both connected, the cable is used.
 
@@ -63,9 +58,9 @@ For each item: change the value, Apply, unplug and reconnect (or reload), and co
 
 - [ ] Create, duplicate, rename and delete a profile.
 - [ ] Switching profile and applying updates the mouse.
-- [ ] Profiles survive an app restart (Windows) and a page reload (Web).
+- [ ] Profiles survive an app restart.
 - [ ] Export a profile to a file and import it back.
-- [ ] Windows: import from the vendor software reproduces the vendor profile values.
+- [ ] Import from the vendor software reproduces the vendor profile values.
 
 ## 7. Restore defaults
 
@@ -78,7 +73,6 @@ For each item: change the value, Apply, unplug and reconnect (or reload), and co
       Retry after reconnecting succeeds.
 - [ ] Remove the dongle during an edit: the disconnected banner appears and edits are kept.
 - [ ] Dongle with the mouse asleep: Apply shows "Mouse is asleep - move it, then Retry".
-- [ ] Web: with the vendor software or another tab holding the device, the open failure message is shown.
 - [ ] No crash or blank screen in any of the above.
 
 ## 9. Packaging
@@ -86,4 +80,5 @@ For each item: change the value, Apply, unplug and reconnect (or reload), and co
 - [ ] The Windows installer installs without an administrator prompt and starts the app.
 - [ ] "Start with system" launches the app minimised after signing in again.
 - [ ] Uninstalling removes the app and its startup entry.
-- [ ] The web build served as static files loads and keeps its data after a reload.
+- [ ] macOS and Linux: `install.sh` installs the app, and running it again updates it in place.
+- [ ] Linux: the menu entry starts the app, and opening it again brings back the hidden window.
